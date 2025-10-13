@@ -434,7 +434,48 @@ module.exports = function (context, readonly) {
       );
     });
 
+    context.map.on('style.load', () => {
+      ensureEsriBase(context.map);
+    });
+
     context.map.on('draw.create', created);
+
+    function ensureEsriBase(map) {
+      console.log("Loading ESRI map layer");
+      // add source once per style
+      if (!map.getSource('esri-world')) {
+        map.addSource('esri-world', {
+          type: 'raster',
+          tiles: [
+            'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+          ],
+          tileSize: 256,
+          attribution: '© Esri, Maxar, Earthstar Geographics'
+        });
+      }
+
+      // insert raster below labels
+      const layers = map.getStyle().layers || [];
+      const firstLabelId = layers.find(l => l.type === 'symbol' && l.layout && l.layout['text-field'])?.id;
+
+      if (!map.getLayer('esri-world-layer')) {
+        map.addLayer(
+          { id: 'esri-world-layer', type: 'raster', source: 'esri-world', minzoom: 0, maxzoom: 19 },
+          firstLabelId // may be undefined; then it's appended
+        );
+      }
+
+      // hide original basemap (keep labels + our custom layers)
+      for (const l of layers) {
+        const isLabel = l.type === 'symbol';
+        const isOurRaster = l.id === 'esri-world-layer';
+        const isOurData = l.id && l.id.startsWith('map-data-'); // your feature layers
+        if (!isLabel && !isOurRaster && !isOurData) {
+          try { map.setLayoutProperty(l.id, 'visibility', 'none'); } catch {}
+        }
+      }
+    }
+
 
     function stripIds(features) {
       return features.map((feature) => {

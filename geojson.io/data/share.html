@@ -29,17 +29,30 @@
     background-color:#f7f7f7;
 }
   </style>
-  <script src='//api.tiles.mapbox.com/mapbox.js/v2.2.2/mapbox.js'></script>
+  <!--<script src='//api.tiles.mapbox.com/mapbox.js/v2.2.2/mapbox.js'></script>-->
   <script src='//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js' ></script>
-  <link href='//api.tiles.mapbox.com/mapbox.js/v2.2.2/mapbox.css' rel='stylesheet' />
+ <!-- <link href='//api.tiles.mapbox.com/mapbox.js/v2.2.2/mapbox.css' rel='stylesheet' />-->
+      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 <div id='map'></div>
 <script type='text/javascript'>
-L.mapbox.accessToken = 'pk.eyJ1Ijoic3ZjLW9rdGEtbWFwYm94LXN0YWZmLWFjY2VzcyIsImEiOiJjbG5sMnExa3kxNTJtMmtsODJld24yNGJlIn0.RQ4CHchAYPJQZSiUJ0O3VQ';
-var map = L.mapbox.map('map');
 
-L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/256/{z}/{x}/{y}?access_token=' + L.mapbox.accessToken).addTo(map);
+const map = L.map('map', { zoomControl: true }).setView([64.14, -21.9], 7);
+
+//L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/256/{z}/{x}/{y}?access_token=' + L.mapbox.accessToken).addTo(map);
+// ESRI World Imagery (no token)
+const esri = L.tileLayer(
+  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  { maxZoom: 19, attribution: '© Esri, Maxar, Earthstar Geographics' }
+).addTo(map);
+
+// Optional OSM base + toggle
+const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19, attribution: '© OpenStreetMap'
+});
+L.control.layers({ 'ESRI Imagery': esri, 'OpenStreetMap': osm }).addTo(map);
 
 $.getJSON('map.geojson', function(geojson) {
     var geojsonLayer = L.mapbox.featureLayer(geojson).addTo(map);
