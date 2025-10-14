@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+     fill="none" stroke="currentColor" stroke-width="2"
+     stroke-linecap="round" stroke-linejoin="round">
+  <!-- head/base -->
+  <rect x="9.5" y="14" width="5" height="5" rx="1"/>
+  <path d="M12 14V11"/>
+  <circle cx="12" cy="11" r="0.8" fill="currentColor" stroke="none"/>
+  <!-- water fan (arcs) -->
+  <path d="M12 9.5 C11 8.7 10 8.2 9 8"/>
+  <path d="M12 9.5 C13 8.7 14 8.2 15 8"/>
+  <path d="M12 8.8 C10.2 8.4 8.8 7.8 7.5 7"/>
+  <path d="M12 8.8 C13.8 8.4 15.2 7.8 16.5 7"/>
+</svg>
