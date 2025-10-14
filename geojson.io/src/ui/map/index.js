@@ -27,6 +27,8 @@ let writable = false;
 let drawing = false;
 let editing = false;
 
+let pendingProps = null;  // properties to apply to the next created feature(s)
+
 const dummyGeojson = {
   type: 'FeatureCollection',
   features: [
@@ -204,6 +206,30 @@ module.exports = function (context, readonly) {
       context.map.addControl(new mapboxgl.NavigationControl());
 
       context.map.addControl(drawControl, 'top-right');
+
+      const drawIrrigationControl = new ExtendDrawBar({
+        draw: context.Draw,
+        buttons: [
+          {
+            on: 'click',
+            action: () => {
+              drawing = true;
+              pendingProps = { layer: 'irrigation.main' };
+              context.Draw.changeMode('draw_line_string')
+            },
+            classes: ['mapbox-gl-draw_ctrl-draw-btn','mapbox-gl-draw-irrigation-main'],
+            title: 'Draw Irrigation Main'
+          },
+          {
+            on: 'click',
+            action: () => { addHeadAtGPS(); },
+            classes: ['mapbox-gl-draw_ctrl-draw-btn', 'draw-irrigation-head-gps'],
+            title: 'Add Sprinkler @ My Location'
+          },
+        ]
+      });
+
+      context.map.addControl(drawIrrigationControl, 'top-right');
 
       const editControl = new EditControl();
       context.map.addControl(editControl, 'top-right');
@@ -432,6 +458,29 @@ module.exports = function (context, readonly) {
         'map-data-line',
         handleLinestringOrPolygonClick
       );
+
+      if (!context.map.hasImage('irrigation-head')) {
+        map.loadImage('img/irrigation-head.svg', (error, image) => {
+        if (error) {
+            console.error('Error loading irrigation head icon:', error);
+            return;
+          }
+          map.addImage('irrigation-head', image);
+        });
+      }
+
+      map.addLayer({
+        id: 'irrigation-heads-symbol',
+        type: 'symbol',
+        source: 'mapbox-gl-draw-cold',
+        layout: {
+          'icon-image': 'irrigation-head',
+          'icon-size': 0.8,
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true
+        },
+        filter: ['==', ['get', 'layer'], 'irrigation.head']
+      });
     });
 
     context.map.on('style.load', () => {
@@ -476,6 +525,50 @@ module.exports = function (context, readonly) {
       }
     }
 
+    async function addHeadAtGPS() {
+      if (!('geolocation' in navigator)) {
+        console.warn('Geolocation not supported');
+        return;
+      }
+
+      const getPosition = (opts) => new Promise((resolve, reject) =>
+        navigator.geolocation.getCurrentPosition(resolve, reject, opts)
+      );
+
+      try {
+        // Ask for high-accuracy GPS (mobile)
+        const pos = await getPosition({
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        });
+
+        const lng = pos.coords.longitude;
+        const lat = pos.coords.latitude;
+
+        // Create the sprinkler head feature
+        const feature = {
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [lng, lat] },
+          properties: {
+            layer: 'irrigation.head',
+            source: 'gps',
+            accuracy_m: Math.round(pos.coords.accuracy || 0),
+            createdUtc: new Date().toISOString()
+          }
+        };
+
+        // Add to your data model (reuses your existing update pipeline)
+        update(stripIds([feature]));
+
+        // Center/zoom to it so the user sees the drop
+        context.map.easeTo({ center: [lng, lat], zoom: Math.max(context.map.getZoom(), 18) });
+
+      } catch (err) {
+        console.warn('Geolocation failed:', err);
+      }
+    }
+
 
     function stripIds(features) {
       return features.map((feature) => {
@@ -486,23 +579,30 @@ module.exports = function (context, readonly) {
 
     function created(e) {
       e.features.forEach((f) => {
+        // ensure properties exists
+        f.properties = f.properties || {};
+
+        // apply the tool’s pending properties (e.g., layer: 'irrigation.main')
+        if (pendingProps) Object.assign(f.properties, pendingProps);
+
+        // your existing golf defaulting
         if (isGolfLayer(f.properties.layer)) {
           if (!f.properties.hole) f.properties.hole = '';
         }
       });
+
       context.Draw.deleteAll();
       update(stripIds(e.features));
 
-      // delay setting drawing back to false after a drawn feature is created
-      // this allows the map click handler to ignore the click and prevents a popup
-      // if the drawn feature endeds within an existing feature
+      // small delay you already have
       setTimeout(() => {
         drawing = false;
+        pendingProps = null;   // <— reset so we don’t leak to the next draw
       }, 500);
     }
 
     function isGolfLayer(layerName) {
-      return ['greens', 'bunkers', 'fairways', 'tees', 'drainage'].includes(
+      return ['greens', 'bunkers', 'fairways', 'tees', 'drainage','irrigation.main'].includes(
         layerName
       );
     }

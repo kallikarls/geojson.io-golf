@@ -563,6 +563,23 @@ div.children a {
   border: 1px solid #006600;
 }
 
+.mapbox-gl-draw-irrigation-main {
+  background-image: url('./img/irrigation-main.svg');
+}
+
+.mapbox-gl-draw_ctrl-draw-btn {
+  background-size: 16px 16px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.draw-irrigation-head-gps {
+  background-image: url('/img/irrigation-head-gps.svg'); /* your new head icon */
+  background-size: 16px 16px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
 .mapbox-gl-draw_green:before {
   content: "";
   display: block;
