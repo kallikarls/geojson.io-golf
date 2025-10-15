@@ -199,17 +199,7 @@ module.exports = function (context, readonly) {
             },
             classes: ['mapbox-gl-draw_ctrl-draw-btn', 'mapbox-gl-draw_green'],
             title: 'Draw Green'
-          }
-        ]
-      });
-
-      context.map.addControl(new mapboxgl.NavigationControl());
-
-      context.map.addControl(drawControl, 'top-right');
-
-      const drawIrrigationControl = new ExtendDrawBar({
-        draw: context.Draw,
-        buttons: [
+          },
           {
             on: 'click',
             action: () => {
@@ -229,7 +219,33 @@ module.exports = function (context, readonly) {
         ]
       });
 
-      context.map.addControl(drawIrrigationControl, 'top-right');
+      context.map.addControl(new mapboxgl.NavigationControl());
+
+      context.map.addControl(drawControl, 'top-right');
+
+      // const drawIrrigationControl = new ExtendDrawBar({
+      //   draw: context.Draw,
+      //   buttons: [
+      //     {
+      //       on: 'click',
+      //       action: () => {
+      //         drawing = true;
+      //         pendingProps = { layer: 'irrigation.main' };
+      //         context.Draw.changeMode('draw_line_string')
+      //       },
+      //       classes: ['mapbox-gl-draw_ctrl-draw-btn','mapbox-gl-draw-irrigation-main'],
+      //       title: 'Draw Irrigation Main'
+      //     },
+      //     {
+      //       on: 'click',
+      //       action: () => { addHeadAtGPS(); },
+      //       classes: ['mapbox-gl-draw_ctrl-draw-btn', 'draw-irrigation-head-gps'],
+      //       title: 'Add Sprinkler @ My Location'
+      //     },
+      //   ]
+      // });
+
+      // context.map.addControl(drawIrrigationControl, 'top-right');
 
       const editControl = new EditControl();
       context.map.addControl(editControl, 'top-right');
@@ -458,29 +474,6 @@ module.exports = function (context, readonly) {
         'map-data-line',
         handleLinestringOrPolygonClick
       );
-
-      if (!context.map.hasImage('irrigation-head')) {
-        map.loadImage('img/irrigation-head.svg', (error, image) => {
-        if (error) {
-            console.error('Error loading irrigation head icon:', error);
-            return;
-          }
-          map.addImage('irrigation-head', image);
-        });
-      }
-
-      map.addLayer({
-        id: 'irrigation-heads-symbol',
-        type: 'symbol',
-        source: 'mapbox-gl-draw-cold',
-        layout: {
-          'icon-image': 'irrigation-head',
-          'icon-size': 0.8,
-          'icon-allow-overlap': true,
-          'icon-ignore-placement': true
-        },
-        filter: ['==', ['get', 'layer'], 'irrigation.head']
-      });
     });
 
     context.map.on('style.load', () => {

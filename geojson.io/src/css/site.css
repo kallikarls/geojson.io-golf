@@ -574,7 +574,7 @@ div.children a {
 }
 
 .draw-irrigation-head-gps {
-  background-image: url('/img/irrigation-head-gps.svg'); /* your new head icon */
+  background-image: url('./img/irrigation-head-gps.svg'); /* your new head icon */
   background-size: 16px 16px;
   background-position: center;
   background-repeat: no-repeat;
@@ -582,11 +582,9 @@ div.children a {
 
 .mapbox-gl-draw_green:before {
   content: "";
-  display: block;
-  width: 18px;
-  height: 18px;
-  background-color: #00aa00;
-  margin: auto;
+  position: absolute;
+  left: -8px; top: 6px; bottom: 6px;
+  width: 1px; background: rgba(0,0,0,.25);
 }
 
 .fullscreen .mapboxgl-ctrl-top-right {
