@@ -198,32 +198,26 @@
     .mobile-menu button:hover { background: rgba(0,0,0,.06); }
   }
 
-  /* Big floating action buttons for PDA */
+  /* Floating action buttons — top-left stack */
   .geo-fab {
     position: absolute;
     left: 12px;
-    z-index: 10020;
+    z-index: 10020;                 /* above header/menu */
     width: 56px; height: 56px;
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     font-size: 13px; line-height: 1.1; text-align: center;
-    background: #fff;
+    background: #fff; border: none;
     box-shadow: 0 6px 18px rgba(0,0,0,.22);
-    border: none;
-    cursor: pointer;
-    user-select: none;
+    cursor: pointer; user-select: none;
   }
-  .geo-fab:active { transform: scale(0.98); }
 
-  /* Stack the two FABs */
-  #fab-sprinkler { bottom: 84px; }  /* on top */
-  #fab-pump      { bottom: 16px; }  /* below */
+  /* Put the stack *below* the header (44px burger + 8px gap) */
+  #fab-sprinkler { top: 56px; }     /* first button */
+  #fab-pump      { top: 124px; }    /* second button (56 + 12 gap) */
 
-  /* Label styling inside the circle */
-  .geo-fab span {
-    color: #000;
-    padding: 0 6px;
-  }
+  .geo-fab span { color: #000; padding: 0 6px; }
+  .geo-fab:active { transform: scale(0.97); }
 
   /* Optional: subtle success toast */
   .geo-toast {
@@ -354,232 +348,6 @@
   });
 })();
 </script>
-
-<script>
-(function () {
-  // ---- CONFIGURE YOUR PROPERTY NAMES HERE ----
-  const PUMP_TYPE       = 'irrigation.pump';
-  const SPRINKLER_TYPE  = 'irrigation.sprinkler';
-  const DEFAULT_LAYER   = 'irrigation'; // optional grouping hint
-
-  // We’ll need a reference to MapboxDraw.
-  function getDraw() {
-    return window.draw || window.context?.draw || window._draw || null;
-  }
-
-  // Tiny toaster for feedback
-  function toast(msg, ms = 1200) {
-    let t = document.getElementById('geo-toast');
-    if (!t) {
-      t = document.createElement('div');
-      t.id = 'geo-toast';
-      t.className = 'geo-toast';
-      t.textContent = msg;
-      document.body.appendChild(t);
-    } else {
-      t.textContent = msg;
-    }
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), ms);
-  }
-
-  // Geolocation helper with good defaults for Android Chrome
-  function getCurrentPositionOnce() {
-    return new Promise((resolve, reject) => {
-      if (!('geolocation' in navigator)) {
-        reject(new Error('Geolocation not supported'));
-        return;
-      }
-      navigator.geolocation.getCurrentPosition(
-        pos => resolve(pos),
-        err => reject(err),
-        {
-          enableHighAccuracy: true,    // ask for GPS
-          timeout: 10000,              // 10s
-          maximumAge: 0
-        }
-      );
-    });
-  }
-
-  // Add a point Feature to Draw at [lng, lat] with properties
-  function addPointFeature(lng, lat, props) {
-    const draw = getDraw();
-    if (!draw) throw new Error('MapboxDraw not found (context.draw or window.draw)');
-    const feat = {
-      type: 'Feature',
-      properties: {
-        ...props,
-        layer: DEFAULT_LAYER,
-        source: 'gps',
-        createdAt: new Date().toISOString()
-      },
-      geometry: { type: 'Point', coordinates: [lng, lat] }
-    };
-    const id = draw.add(feat);
-    return Array.isArray(id) ? id[0] : id; // draw.add may return an array
-  }
-
-  async function place(typeLabel) {
-    try {
-      // Guard: secure origin is required (https). GitHub Pages is fine.
-      if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-        toast('Needs HTTPS for GPS'); return;
-      }
-
-      const pos = await getCurrentPositionOnce();
-      const { latitude, longitude, accuracy } = pos.coords;
-
-      if (typeof latitude !== 'number' || typeof longitude !== 'number') {
-        toast('Invalid GPS fix'); return;
-      }
-
-      // Optional accuracy gate (Android often returns >30m early)
-      if (accuracy && accuracy > 60) {
-        toast(`Low accuracy (${Math.round(accuracy)}m) — placing anyway`);
-      }
-
-      const props = { type: typeLabel };   // your schema: type=irrigation.pump|sprinkler
-      const id = addPointFeature(longitude, latitude, props);
-
-      // Subtle feedback
-      if (navigator.vibrate) navigator.vibrate(35);
-      toast(`${typeLabel.replace('irrigation.', '')} added`);
-
-      // Optional: briefly “ping” the point
-      const map = window.context?.map || window.map;
-      if (map) {
-        map.flyTo({ center: [longitude, latitude], zoom: Math.max(map.getZoom(), 17), speed: 0.9 });
-      }
-      return id;
-    } catch (err) {
-      console.warn('GPS add error:', err);
-      const code = err && err.code;
-      if (code === 1)      toast('Location permission denied');
-      else if (code === 2) toast('Position unavailable');
-      else if (code === 3) toast('Location timeout');
-      else                 toast('Could not get location');
-    }
-  }
-
-  // Helper returns a promise, but it STARTS watchPosition immediately (user gesture preserved)
-function getFixSmart({deadlineMs = 30000, desiredAcc = 100, highAcc = true} = {}) {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      reject(new Error('Geolocation not supported'));
-      return;
-    }
-    let best = null;
-    let done = false;
-
-    const clear = () => {
-      if (watchId != null) navigator.geolocation.clearWatch(watchId);
-    };
-
-    const onSuccess = (pos) => {
-      if (done) return;
-      const c = pos.coords;
-      // keep best seen so far
-      if (!best || (c.accuracy && c.accuracy < best.coords.accuracy)) best = pos;
-
-      // accept first “good enough” fix
-      if (c.accuracy && c.accuracy <= desiredAcc) {
-        done = true; clear(); resolve(pos);
-      }
-    };
-    const onError = (err) => {
-      // don’t immediately fail; wait for deadline unless it’s permission denied
-      if (err && err.code === 1) { // PERMISSION_DENIED
-        done = true; clear(); reject(new Error('Location permission denied'));
-      }
-      // For POSITION_UNAVAILABLE/TIMEOUT we keep waiting; deadline will resolve with best/last if any
-    };
-
-    const watchId = navigator.geolocation.watchPosition(onSuccess, onError, {
-      enableHighAccuracy: highAcc,
-      timeout: 30000,          // per-fix timeout (not the overall deadline)
-      maximumAge: 0
-    });
-
-    // Overall deadline: resolve with best if we have it, otherwise try one-shot, then reject
-    setTimeout(() => {
-      if (done) return;
-      if (best) { done = true; clear(); resolve(best); return; }
-
-      navigator.geolocation.getCurrentPosition(
-        pos => { if (!done) { done = true; clear(); resolve(pos); } },
-        err => { if (!done) { done = true; clear(); reject(new Error(err && err.message || 'Location timeout')); } },
-        { enableHighAccuracy: highAcc, timeout: 10000, maximumAge: 15000 } // allow a recent cached fix
-      );
-    }, deadlineMs);
-  });
-}
-
-
-  // Mount two big FAB buttons after app loads
-  function mountFabs() {
-    // Prevent duplicates
-    if (document.getElementById('fab-sprinkler')) return;
-
-    const spr = document.createElement('button');
-    spr.id = 'fab-sprinkler';
-    spr.className = 'geo-fab';
-    spr.title = 'Add sprinkler at GPS';
-    spr.innerHTML = '<span>Sprink</span>';
-    // IMPORTANT: start geolocation immediately on click to keep user gesture
-    spr.addEventListener('click', () => {
-      const p = getFixSmart({ deadlineMs: 30000, desiredAcc: 100, highAcc: true });
-      // you can show a toast AFTER starting the request (not before)
-      toast('Getting GPS…');
-
-      p.then(pos => {
-        const { latitude, longitude, accuracy } = pos.coords;
-        addPointFeature(longitude, latitude, { type: 'irrigation.sprinkler' });
-        if (navigator.vibrate) navigator.vibrate(30);
-        toast(`Sprinkler added (${Math.round(accuracy)}m)`);
-        const map = window.context?.map || window.map;
-        map && map.flyTo({ center: [longitude, latitude], zoom: Math.max(map.getZoom(), 17), speed: 0.9 });
-      }).catch(err => {
-        toast(err.message || 'Could not get location');
-      });
-    });
-    document.body.appendChild(spr);
-
-    const pump = document.createElement('button');
-    pump.id = 'fab-pump';
-    pump.className = 'geo-fab';
-    pump.title = 'Add pump at GPS';
-    pump.innerHTML = '<span>Pump</span>';
-    document.getElementById('fab-pump').addEventListener('click', () => {
-      const p = getFixSmart({ deadlineMs: 30000, desiredAcc: 100, highAcc: true });
-      toast('Getting GPS…');
-      p.then(pos => {
-        const { latitude, longitude, accuracy } = pos.coords;
-        addPointFeature(longitude, latitude, { type: 'irrigation.pump' });
-        navigator.vibrate && navigator.vibrate(30);
-        toast(`Pump added (${Math.round(accuracy)}m)`);
-        const map = window.context?.map || window.map;
-        map && map.flyTo({ center: [longitude, latitude], zoom: Math.max(map.getZoom(), 17), speed: 0.9 });
-      }).catch(err => {
-        toast(err.message || 'Could not get location');
-      });
-    });
-
-    document.body.appendChild(pump);
-  }
-
-  // Initialize when everything is ready
-  window.addEventListener('load', () => {
-    mountFabs();
-
-    // Map resize nudge on mobile after UI settles
-    setTimeout(() => {
-      if (window.context?.map?.resize) window.context.map.resize();
-    }, 250);
-  });
-})();
-</script>
-
 
 </body>
 
