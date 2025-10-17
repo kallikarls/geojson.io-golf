@@ -80,14 +80,133 @@
     gtag('config', 'G-3K6EEFGNP0');
   </script>
 
-  <style>
-    /*
+<style>
+  /*
    * http://seclab.stanford.edu/websec/framebusting/framebust.pdf
    */
-    body {
-      display: none;
+  body {
+    display: none;
+  }
+
+  /* Force file-bar to be visible on all screen sizes */
+  .file-bar {
+    display: flex !important; /* or block if it looks better in your layout */
+  }
+
+  /* Responsive optimizations for mobile & PDA */
+  @media (max-width: 900px) {
+    /* Hide layer + projection switch buttons */
+    .layer-switch,
+    .projection-switch {
+      display: none !important;
     }
-  </style>
+
+      /* also make sure it's not hidden by Tailwind's hidden/md:block combo */
+    .file-bar.hidden {
+      display: flex !important;
+    }
+
+    /* (optional) hide all bottom-left control wrapper if present */
+    .mapboxgl-ctrl-bottom-left {
+      display: none !important;
+    }
+
+    /* Hide the sidebar (matches your actual class combo) */
+    .right.flex.flex-col.bg-white.relative,
+    [class~="right"][class~="flex-col"][class~="bg-white"][class~="relative"] {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+      max-width: 0 !important;
+      max-height: 0 !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      overflow: hidden !important;
+    }
+
+    /* Make the map fill the screen; neutralize basis-0 on mobile */
+    .map {
+      display: block !important;
+      flex: 1 1 auto !important;
+      flex-basis: 100% !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      height: 100vh !important;
+    }
+    .map.basis-0 {
+      flex-basis: 100% !important;
+    }
+
+    /* Fullscreen page, no scrollbars */
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      margin: 0;
+    }
+
+    /* Hide the top banner / header (geojson.io header variants) */
+    .topbar,
+    .site-header,
+    header,
+    .branding,
+    .geojsonio-header,
+    body > div[class*="top"],
+    body > header:first-of-type {
+      display: none !important;
+    }
+
+    /* Hide the search (Mapbox Geocoder + any custom search box) */
+    .mapboxgl-ctrl-geocoder,
+    #search,
+    .search,
+    input[type="search"] {
+      display: none !important;
+    }
+
+    .file-bar { display: none !important; }
+
+    .mobile-menu-btn {
+      position: absolute;
+      top: 8px; left: 8px;
+      z-index: 10000;
+      display: flex;
+      align-items: center; justify-content: center;
+      width: 36px; height: 36px;
+      border: none; border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 2px 10px rgba(0,0,0,.15);
+      font-size: 20px; line-height: 1;
+      cursor: pointer;
+    }
+
+    .mobile-menu {
+      position: absolute;
+      top: 48px; left: 8px;
+      z-index: 10000;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0,0,0,.18);
+      padding: 6px;
+      min-width: 160px;
+      display: none; /* toggled by JS */
+    }
+    .mobile-menu.open { display: block; }
+
+    .mobile-menu button {
+      width: 100%;
+      padding: 10px 12px;
+      text-align: left;
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .mobile-menu button:hover { background: rgba(0,0,0,.06); }
+
+  }
+</style>
+
 </head>
 
 <body id="geojsonio-body" class="h-full">
@@ -125,6 +244,95 @@
     }
   </script>
   <script src="dist/bundle.js"></script>
+
+  <script>
+    window.addEventListener('load', function () {
+      if (window.innerWidth <= 900) {
+        setTimeout(() => {
+          if (window.context?.map?.resize) window.context.map.resize();
+        }, 200);
+      }
+    });
+  </script>
+
+  <script>
+    (function () {
+      // 1) Hide the Meta button (desktop + mobile) by label
+      function hideMeta() {
+        const candidates = document.querySelectorAll('.file-bar a, .file-bar button, .file-bar span, .file-bar div');
+        candidates.forEach(el => {
+          const txt = (el.textContent || '').trim().toLowerCase();
+          if (txt === 'meta') el.style.display = 'none';
+        });
+      }
+
+      // 2) Find a file-bar button by its label and click it
+      function clickFileBar(label) {
+        const L = label.toLowerCase();
+        const candidates = document.querySelectorAll('.file-bar a, .file-bar button');
+        for (const el of candidates) {
+          const txt = (el.textContent || '').trim().toLowerCase();
+          if (txt === L) { el.click(); return true; }
+        }
+        return false;
+      }
+
+      // 3) Build the hamburger + menu (mobile only)
+      function buildMobileMenu() {
+        if (window.innerWidth > 900) return;
+
+        // Ensure top header exists to anchor; fall back to body
+        const anchor =
+          document.querySelector('.topbar, .site-header, header, body') || document.body;
+
+        // Button
+        const btn = document.createElement('button');
+        btn.className = 'mobile-menu-btn';
+        btn.setAttribute('aria-label', 'Menu');
+        btn.textContent = '☰';
+
+        // Menu
+        const menu = document.createElement('div');
+        menu.className = 'mobile-menu';
+        menu.innerHTML = `
+          <button data-action="Open">Open</button>
+          <button data-action="Save">Save</button>
+          <button data-action="New">New</button>
+        `;
+
+        // Toggle
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          menu.classList.toggle('open');
+        });
+
+        // Click handlers
+        menu.addEventListener('click', (e) => {
+          const b = e.target.closest('button[data-action]');
+          if (!b) return;
+          const ok = clickFileBar(b.dataset.action);
+          menu.classList.remove('open');
+          if (!ok) console.warn('Could not find file-bar button:', b.dataset.action);
+        });
+
+        // Close on outside click
+        document.addEventListener('click', () => menu.classList.remove('open'));
+
+        anchor.appendChild(btn);
+        anchor.appendChild(menu);
+      }
+
+      // Run once UI exists
+      const init = () => { hideMeta(); buildMobileMenu(); };
+      if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        setTimeout(init, 0);
+      } else {
+        document.addEventListener('DOMContentLoaded', init, { once: true });
+      }
+    })();
+    </script>
+
+
 </body>
 
 </html>
