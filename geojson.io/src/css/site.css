@@ -630,3 +630,36 @@ div.children a {
 .mapboxgl-compact {
   box-sizing: initial;
 }
+
+.irrigation-ctrl {
+  display: flex;
+  gap: 12px;
+  padding: 8px;
+}
+
+.irrigation-ctrl .irrigation-btn {
+  width: 72px;
+  height: 72px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  line-height: 1.1;
+  font-size: 12px;
+  border-radius: 12px;
+}
+
+.irrigation-ctrl .irrigation-btn svg {
+  display: block;
+  width: 28px;
+  height: 28px;
+  margin-bottom: 4px;
+}
+
+@media (pointer: coarse) {
+  .irrigation-ctrl .irrigation-btn {
+    width: 84px;
+    height: 84px;
+    font-size: 13px;
+  }
+}

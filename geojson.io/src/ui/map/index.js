@@ -117,6 +117,37 @@ module.exports = function (context, readonly) {
     });
 
     if (writable) {
+
+      // Large GPS toolbar control (sprinkler + pump)
+      class BigIrrigationToolbar {
+        onAdd(map) {
+          this._map = map;
+          const el = document.createElement('div');
+          el.className = 'mapboxgl-ctrl mapboxgl-ctrl-group irrigation-ctrl';
+          el.innerHTML = `
+            <button class="irrigation-btn gps-head" title="Add Sprinkler @ My Location" aria-label="Add Sprinkler @ My Location">
+              <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+                <path d="M12 3l3 3-3 3-3-3 3-3zm0 7a1 1 0 011 1v5.05a4.5 4.5 0 11-2 0V11a1 1 0 011-1z"/>
+              </svg>
+              <span>Sprinkler</span>
+            </button>
+            <button class="irrigation-btn gps-pump" title="Add Pump @ My Location" aria-label="Add Pump @ My Location">
+              <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+                <path d="M7 7h10v4h2a2 2 0 012 2v4h-2v-3h-2v3H7v-3H5v3H3v-4a2 2 0 012-2h2V7zM9 7V5h6v2H9z"/>
+              </svg>
+              <span>Pump</span>
+            </button>
+          `;
+          el.querySelector('.gps-head') .addEventListener('click', () => addHeadAtGPS());
+          el.querySelector('.gps-pump') .addEventListener('click', () => addPumpAtGPS());
+          this._container = el;
+          return el;
+        }
+        onRemove() { this._container?.remove(); this._map = undefined; }
+      }
+
+      context.map.addControl(new BigIrrigationToolbar(), 'top-right'); // or 'bottom-right'
+
       context.map.addControl(
         new MapboxGeocoder({
           accessToken: mapboxgl.accessToken,
@@ -139,6 +170,11 @@ module.exports = function (context, readonly) {
         controls: {},
         styles: drawStyles
       });
+
+      // ✅ make it visible to the outside world (same object)
+      if (typeof window !== 'undefined') {
+        window.context = context;
+      }
 
       const drawControl = new ExtendDrawBar({
         draw: context.Draw,
@@ -191,31 +227,31 @@ module.exports = function (context, readonly) {
             classes: ['mapbox-gl-draw_ctrl-draw-btn', 'mapbox-gl-draw_circle'],
             title: 'Draw Circular Polygon (c)'
           },
-          {
-            on: 'click',
-            action: () => {
-              drawing = true;
-              context.Draw.changeMode('draw_green');
-            },
-            classes: ['mapbox-gl-draw_ctrl-draw-btn', 'mapbox-gl-draw_green'],
-            title: 'Draw Green'
-          },
-          {
-            on: 'click',
-            action: () => {
-              drawing = true;
-              pendingProps = { layer: 'irrigation.main' };
-              context.Draw.changeMode('draw_line_string')
-            },
-            classes: ['mapbox-gl-draw_ctrl-draw-btn','mapbox-gl-draw-irrigation-main'],
-            title: 'Draw Irrigation Main'
-          },
-          {
-            on: 'click',
-            action: () => { addHeadAtGPS(); },
-            classes: ['mapbox-gl-draw_ctrl-draw-btn', 'draw-irrigation-head-gps'],
-            title: 'Add Sprinkler @ My Location'
-          },
+          // {
+          //   on: 'click',
+          //   action: () => {
+          //     drawing = true;
+          //     context.Draw.changeMode('draw_green');
+          //   },
+          //   classes: ['mapbox-gl-draw_ctrl-draw-btn', 'mapbox-gl-draw_green'],
+          //   title: 'Draw Green'
+          // },
+          // {
+          //   on: 'click',
+          //   action: () => {
+          //     drawing = true;
+          //     pendingProps = { layer: 'irrigation.main' };
+          //     context.Draw.changeMode('draw_line_string')
+          //   },
+          //   classes: ['mapbox-gl-draw_ctrl-draw-btn','mapbox-gl-draw-irrigation-main'],
+          //   title: 'Draw Irrigation Main'
+          // },
+          // {
+          //   on: 'click',
+          //   action: () => { addHeadAtGPS(); },
+          //   classes: ['mapbox-gl-draw_ctrl-draw-btn', 'draw-irrigation-head-gps'],
+          //   title: 'Add Sprinkler @ My Location'
+          // },
         ]
       });
 
@@ -413,6 +449,30 @@ module.exports = function (context, readonly) {
           filter: ['==', ['geometry-type'], 'LineString']
         });
 
+        context.map.addLayer({
+          id: 'map-data-point',
+          type: 'circle',
+          source: 'map-data',
+          paint: {
+            'circle-color': ['coalesce', ['get', 'marker-color'], color],
+            'circle-radius': ['coalesce', ['get', 'point-radius'], 6],
+            'circle-opacity': ['coalesce', ['get', 'fill-opacity'], 1],
+            'circle-stroke-color': ['coalesce', ['get', 'stroke'], '#000'],
+            'circle-stroke-width': ['coalesce', ['get', 'stroke-width'], 1],
+            'circle-emissive-strength': 1
+          },
+          filter: ['==', ['geometry-type'], 'Point']
+        });
+
+        // (optional) make them clickable like your other layers:
+        context.map.on('click', 'map-data-point', (e) => bindPopup(e, context, writable));
+        context.map.on('mouseenter', 'map-data-point', () => {
+          if (context.Draw.getMode() === 'simple_select') context.map.getCanvas().style.cursor = 'pointer';
+        });
+        context.map.on('mouseleave', 'map-data-point', () => {
+          if (context.Draw.getMode() === 'simple_select') context.map.getCanvas().style.removeProperty('cursor');
+        });
+
         geojsonToLayer(context, writable);
 
         context.data.set({
@@ -562,6 +622,42 @@ module.exports = function (context, readonly) {
       }
     }
 
+    async function addPumpAtGPS() {
+      if (!('geolocation' in navigator)) {
+        console.warn('Geolocation not supported');
+        return;
+      }
+
+      const getPosition = (opts) =>
+        new Promise((resolve, reject) =>
+          navigator.geolocation.getCurrentPosition(resolve, reject, opts)
+        );
+
+      try {
+        const pos = await getPosition({ enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+        const lng = pos.coords.longitude;
+        const lat = pos.coords.latitude;
+
+        const feature = {
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [lng, lat] },
+          properties: {
+            layer: 'irrigation.pump',
+            source: 'gps',
+            accuracy_m: Math.round(pos.coords.accuracy || 0),
+            createdUtc: new Date().toISOString(),
+            'marker-color': '#0a8f5b',  // distinct from sprinkler
+            'point-radius': 8
+          }
+        };
+
+        update(stripIds([feature]));
+        context.map.easeTo({ center: [lng, lat], zoom: Math.max(context.map.getZoom(), 18) });
+        if (navigator.vibrate) navigator.vibrate(30);
+      } catch (err) {
+        console.warn('Geolocation failed:', err);
+      }
+    }
 
     function stripIds(features) {
       return features.map((feature) => {
@@ -617,6 +713,22 @@ module.exports = function (context, readonly) {
       }
     });
   }
+
+  // --- Hamburger menu wiring ---
+function onHamburgerSave(ev) {
+  ev.preventDefault();
+  ev.stopPropagation();
+
+  if (window.context?.actions?.downloadGeoJSON) {
+    window.context.actions.downloadGeoJSON(); // ✅ use original save
+    if (navigator.vibrate) navigator.vibrate(20);
+  } else {
+    console.warn('downloadGeoJSON not found on context.actions');
+  }
+}
+
+document.getElementById('menu-save')?.addEventListener('pointerup', onHamburgerSave, { passive: false });
+document.getElementById('menu-save')?.addEventListener('click', onHamburgerSave, { passive: false });
 
   return map;
 };

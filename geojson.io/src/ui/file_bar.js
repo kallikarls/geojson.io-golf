@@ -358,5 +358,9 @@ module.exports = function fileBar(context) {
     return true;
   }
 
+  // expose the existing save for external callers
+  context.actions = context.actions || {};
+  context.actions.downloadGeoJSON = downloadGeoJSON;
+
   return bar;
 };
