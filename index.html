@@ -280,20 +280,16 @@
 (function () {
   const isMobile = window.matchMedia('(max-width: 900px)').matches;
 
-  // Hide the "Meta" button everywhere and hide file-bar on mobile
   function cleanFileBar() {
     document.querySelectorAll('.file-bar').forEach(fb => {
-      // Remove "Meta"
       fb.querySelectorAll('a,button,span,div').forEach(el => {
         const t = (el.textContent || '').trim().toLowerCase();
         if (t === 'meta') el.style.display = 'none';
       });
-      // Hide the whole bar on mobile (CSS should do it; this enforces it)
       if (isMobile) fb.style.setProperty('display', 'none', 'important');
     });
   }
 
-  // Build hamburger + dropdown and forward to real file-bar buttons
   function buildMobileMenu() {
     if (!isMobile) return;
 
@@ -322,13 +318,42 @@
     });
     document.addEventListener('click', () => menu.classList.remove('open'));
 
+    // ✅ NEW: special-case "Save" to call the original downloadGeoJSON
     menu.addEventListener('click', e => {
       const b = e.target.closest('button[data-action]');
       if (!b) return;
-      const L = b.dataset.action.toLowerCase();
+
+      const action = (b.dataset.action || '').toLowerCase();
+      if (action === 'save') {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Prefer the original function exposed from fileBar.js
+        const fn = window.context?.actions?.downloadGeoJSON;
+        if (typeof fn === 'function') {
+          fn();
+        } else {
+          // Fallback: click the "GeoJSON" submenu entry in the hidden file-bar
+          const geoBtn = [...document.querySelectorAll('.file-bar .children a')]
+            .find(el => (el.textContent || '').trim().toLowerCase() === 'geojson');
+          if (geoBtn) {
+            geoBtn.click();
+          } else {
+            console.warn('GeoJSON export not found; ensure fileBar is initialized.');
+          }
+        }
+
+        // close menu + light haptic
+        menu.classList.remove('open');
+        if (navigator.vibrate) navigator.vibrate(20);
+        return;
+      }
+
+      // Default: forward Open/New to the real file-bar items by label
+      const targetLabel = action;
       const real = [...document.querySelectorAll('.file-bar a, .file-bar button')]
-        .find(el => (el.textContent || '').trim().toLowerCase() === L);
-      if (real) real.click(); else console.warn('file-bar button not found:', L);
+        .find(el => (el.textContent || '').trim().toLowerCase() === targetLabel);
+      if (real) real.click(); else console.warn('file-bar button not found:', targetLabel);
       menu.classList.remove('open');
     });
 
@@ -336,12 +361,10 @@
     anchor.appendChild(menu);
   }
 
-  // Init after app has built the DOM
   window.addEventListener('load', function () {
     cleanFileBar();
     buildMobileMenu();
 
-    // Ensure the map resizes after our layout changes on mobile
     if (isMobile && window.context?.map?.resize) {
       setTimeout(() => window.context.map.resize(), 200);
     }
