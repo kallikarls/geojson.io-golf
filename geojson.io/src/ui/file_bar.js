@@ -298,14 +298,53 @@ module.exports = function fileBar(context) {
 
   function downloadGeoJSON() {
     if (d3.event) d3.event.preventDefault();
-    const content = JSON.stringify(context.data.get('map'));
+
+    const fc = context.data.get('map');
     const meta = context.data.get('meta');
-    saveAs(
-      new Blob([content], {
-        type: 'text/plain;charset=utf-8'
-      }),
-      (meta && meta.name) || 'map.geojson'
-    );
+    const defaultName = (meta && meta.name) || 'map.geojson';
+
+    // Ask the user
+    const input = prompt('Save as…', defaultName);
+    if (input === null) return; // user cancelled
+
+    const filename = ensureExt(input.trim(), '.geojson');
+    const content = JSON.stringify(fc, null, 2);
+
+    // Prefer modern native save dialog when available
+    if (window.showSaveFilePicker) {
+      (async () => {
+        try {
+          const handle = await showSaveFilePicker({
+            suggestedName: filename,
+            types: [
+              {
+                description: 'GeoJSON',
+                accept: { 'application/geo+json': ['.geojson'], 'application/json': ['.json'] }
+              }
+            ]
+          });
+          const writable = await handle.createWritable();
+          await writable.write(new Blob([content], { type: 'application/geo+json' }));
+          await writable.close();
+        } catch (err) {
+          // If the user cancels the picker, just exit silently.
+          if (err && err.name !== 'AbortError') console.warn('Save failed:', err);
+        }
+      })();
+    } else {
+      // Fallback: use file-saver as before
+      saveAs(
+        new Blob([content], { type: 'application/geo+json;charset=utf-8' }),
+        filename
+      );
+    }
+  }
+
+  // helper to ensure extension
+  function ensureExt(name, ext) {
+    const lower = name.toLowerCase();
+    const dotExt = ext.startsWith('.') ? ext : '.' + ext;
+    return lower.endsWith(dotExt) ? name : name + dotExt;
   }
 
   function downloadDSV() {
