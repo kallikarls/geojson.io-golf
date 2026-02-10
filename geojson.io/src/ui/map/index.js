@@ -163,14 +163,16 @@ module.exports = function (context, readonly) {
           this._map = map;
           const el = document.createElement('div');
           el.className = 'mapboxgl-ctrl irrigation-ctrl';
+          el.style.pointerEvents = 'auto'; // Force container clickable
+
           el.innerHTML = `
-            <button class="irrigation-btn gps-head" title="Add Sprinkler @ My Location" aria-label="Add Sprinkler @ My Location">
+            <button class="irrigation-btn gps-head" title="Add Sprinkler @ My Location" aria-label="Add Sprinkler @ My Location" style="pointer-events: auto; cursor: pointer;">
               <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
                 <path d="M12 3l3 3-3 3-3-3 3-3zm0 7a1 1 0 011 1v5.05a4.5 4.5 0 11-2 0V11a1 1 0 011-1z"/>
               </svg>
               <span>Sprinkler</span>
             </button>
-            <button class="irrigation-btn gps-pump" title="Add Pump @ My Location" aria-label="Add Pump @ My Location">
+            <button class="irrigation-btn gps-pump" title="Add Pump @ My Location" aria-label="Add Pump @ My Location" style="pointer-events: auto; cursor: pointer;">
               <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
                 <path d="M7 7h10v4h2a2 2 0 012 2v4h-2v-3h-2v3H7v-3H5v3H3v-4a2 2 0 012-2h2V7zM9 7V5h6v2H9z"/>
               </svg>
@@ -187,6 +189,14 @@ module.exports = function (context, readonly) {
             e.preventDefault();
             addPumpAtGPS();
           });
+
+          // Prevent map drag on button click/hold
+          ['mousedown', 'touchstart', 'dblclick'].forEach(evt => {
+            el.querySelectorAll('button').forEach(btn => {
+              btn.addEventListener(evt, (e) => e.stopPropagation());
+            });
+          });
+
           this._container = el;
           return el;
         }

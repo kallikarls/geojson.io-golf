@@ -611,9 +611,15 @@ div.children a {
   /* Let clicks pass through empty areas */
 }
 
-.mapboxgl-ctrl-top-right .mapboxgl-ctrl {
-  pointer-events: auto;
-  /* Re-enable clicks on controls */
+/* Force interactivity on ALL controls */
+.mapboxgl-ctrl-top-right .mapboxgl-ctrl,
+.mapboxgl-ctrl-top-right .mapboxgl-ctrl-group,
+.mapboxgl-ctrl-top-right button,
+.mapboxgl-ctrl-top-right a,
+.mapboxgl-ctrl-top-right .mapbox-gl-draw_ctrl-draw-btn,
+.mapboxgl-ctrl-top-right .irrigation-btn {
+  pointer-events: auto !important;
+  cursor: pointer !important;
 }
 
 .mapboxgl-ctrl-top-right .mapboxgl-ctrl-geocoder {

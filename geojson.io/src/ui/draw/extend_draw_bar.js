@@ -27,6 +27,8 @@ class extendDrawBar {
     const ctrl = this;
     const elButton = document.createElement('button');
     elButton.className = 'mapbox-gl-draw_ctrl-draw-btn';
+    elButton.style.pointerEvents = 'auto'; // Force clickable
+    elButton.style.cursor = 'pointer';
     if (opt.classes instanceof Array) {
       opt.classes.forEach((c) => {
         elButton.classList.add(c);
@@ -36,6 +38,10 @@ class extendDrawBar {
       e.stopPropagation();
       e.preventDefault();
       opt.action(e);
+    });
+    // Prevent map drag on button click/hold
+    ['mousedown', 'touchstart', 'dblclick'].forEach(evt => {
+      elButton.addEventListener(evt, (e) => e.stopPropagation());
     });
     elButton.title = opt.title;
     ctrl.elContainer.appendChild(elButton);
