@@ -81,7 +81,10 @@ const addMarkers = (geojson, context, writable) => {
 
   geojson.features.forEach((d, i) => {
     const { geometry, properties } = d;
-    handleGeometry(geometry, properties, i);
+    // Use the preserved ID (d.id) if available, otherwise fallback to index i
+    // This ensures that even after filtering, the ID points to the correct index in the original Source of Truth
+    const featureId = (d.id !== undefined) ? d.id : i;
+    handleGeometry(geometry, properties, featureId);
   });
 
   if (pointFeatures.length === 0) {
