@@ -55,7 +55,7 @@ export default {
     markdown(),
 
     css({
-      output: './dist/css/bundle.css',
+      output: './dist/bundle.css',
       minify: production
     }),
 

@@ -418,7 +418,8 @@ module.exports = function (context, readonly) {
       });
 
       // handle delete
-      d3.select('.mapbox-gl-draw_trash').on('click', () => {
+      d3.select('.mapbox-gl-draw_trash').on('click', function () {
+        if (d3.event) d3.event.stopPropagation();
         context.Draw.trash();
       });
 
