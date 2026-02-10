@@ -177,8 +177,16 @@ module.exports = function (context, readonly) {
               <span>Pump</span>
             </button>
           `;
-          el.querySelector('.gps-head').addEventListener('click', () => addHeadAtGPS());
-          el.querySelector('.gps-pump').addEventListener('click', () => addPumpAtGPS());
+          el.querySelector('.gps-head').addEventListener('click', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            addHeadAtGPS();
+          });
+          el.querySelector('.gps-pump').addEventListener('click', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            addPumpAtGPS();
+          });
           this._container = el;
           return el;
         }
