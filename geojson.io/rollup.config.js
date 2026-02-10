@@ -24,6 +24,18 @@ export default {
       transformMixedEsModules: true
     }),
 
+    // Custom alias plugin to force mapbox-gl -> maplibre-gl
+    {
+      name: 'force-maplibre',
+      async resolveId(source, importer) {
+        if (source === 'mapbox-gl') {
+          const resolution = await this.resolve('maplibre-gl', importer, { skipSelf: true });
+          return resolution;
+        }
+        return null;
+      }
+    },
+
     replace({
       'require.main === module': 'false', // jsonhint export quirk
       // Replace hardcoded dev path with production path in ui/map/clickable_marker.js
