@@ -607,6 +607,13 @@ div.children a {
   top: 0;
   right: 0;
   left: 0;
+  pointer-events: none;
+  /* Let clicks pass through empty areas */
+}
+
+.mapboxgl-ctrl-top-right .mapboxgl-ctrl {
+  pointer-events: auto;
+  /* Re-enable clicks on controls */
 }
 
 .mapboxgl-ctrl-top-right .mapboxgl-ctrl-geocoder {
