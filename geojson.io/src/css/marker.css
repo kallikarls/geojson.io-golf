@@ -19,14 +19,16 @@
 }
 
 .marker-properties th {
-  width: 33.3333%;
-  min-width: 100px;
+  width: 40%;
   white-space: nowrap;
   border: 1px solid #ccc;
+  background-color: #eee;
 }
 
 .marker-properties td {
   width: 60%;
+  word-break: break-all;
+  /* Ensure long values don't overflow */
 }
 
 .marker-properties.display td,
@@ -68,7 +70,7 @@ datalist {
   width: 250px;
 }
 
-.tabs-ui > * {
+.tabs-ui>* {
   box-sizing: border-box;
 }
 
@@ -91,13 +93,13 @@ datalist {
   overflow: auto;
 }
 
-.tab [type='radio']:checked ~ label {
+.tab [type='radio']:checked~label {
   background: white;
   border-top-width: 0;
   z-index: 2;
 }
 
-.tab [type='radio']:checked ~ label ~ .content {
+.tab [type='radio']:checked~label~.content {
   z-index: 1;
   display: block;
 }
