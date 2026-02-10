@@ -153,6 +153,25 @@ const addMarkers = (geojson, context, writable) => {
       })
       .addTo(context.map);
 
+    // FIX: Explicitly handle clicks on the marker element.
+    // The ClickableMarker class's _onMapClick method is not reliably called by MapLibre.
+    const markerEl = marker.getElement();
+    markerEl.style.cursor = 'pointer'; // Ensure it looks clickable
+    markerEl.style.pointerEvents = 'auto'; // Ensure it catches events
+
+    markerEl.addEventListener('click', (e) => {
+      console.log('Marker clicked!', d.id);
+      e.stopPropagation(); // Stop map click
+      bindPopup(
+        {
+          lngLat: d.geometry.coordinates,
+          features: [d]
+        },
+        context,
+        writable
+      );
+    });
+
     // Update the dot in the Marker for Dark base map style
 
     marker.getElement().addEventListener('touchstart', () => {
