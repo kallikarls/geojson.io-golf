@@ -562,7 +562,8 @@ div.children a {
   background-color: #00aa00 !important;
   border: 1px solid #006600;
   position: relative;
-  margin-top: 6px;        /* small gap above the section start */
+  margin-top: 6px;
+  /* small gap above the section start */
 }
 
 .mapbox-gl-draw-irrigation-main {
@@ -576,7 +577,8 @@ div.children a {
 }
 
 .draw-irrigation-head-gps {
-  background-image: url('./img/irrigation-head-gps.svg'); /* your new head icon */
+  background-image: url('./img/irrigation-head-gps.svg');
+  /* your new head icon */
   background-size: 16px 16px;
   background-position: center;
   background-repeat: no-repeat;
@@ -585,12 +587,15 @@ div.children a {
 .mapbox-gl-draw_green:before {
   content: "";
   position: absolute;
-  left: 6px;              /* inset so it doesn't touch the rounded edges */
+  left: 6px;
+  /* inset so it doesn't touch the rounded edges */
   right: 6px;
-  top: -4px;              /* sits in the gap created by margin-top */
+  top: -4px;
+  /* sits in the gap created by margin-top */
   height: 1px;
-  background: rgba(0,0,0,.25);
-  z-index: 1;             /* stay on top of the button background */
+  background: rgba(0, 0, 0, .25);
+  z-index: 1;
+  /* stay on top of the button background */
 }
 
 .fullscreen .mapboxgl-ctrl-top-right {
@@ -635,6 +640,9 @@ div.children a {
   display: flex;
   gap: 12px;
   padding: 8px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
 }
 
 .irrigation-ctrl .irrigation-btn {
@@ -647,6 +655,7 @@ div.children a {
   line-height: 1.1;
   font-size: 12px;
   border-radius: 12px;
+  border-top: none !important;
 }
 
 .irrigation-ctrl .irrigation-btn svg {

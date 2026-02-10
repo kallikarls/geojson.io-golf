@@ -102,9 +102,14 @@ module.exports = function (context, readonly) {
     const projection = context.storage.get('projection') || DEFAULT_PROJECTION;
     const activeStyle = context.storage.get('style') || DEFAULT_STYLE;
 
+    // If defaulting to OSM or if we previously failed, clear the token to avoid 401 noise
+    if (activeStyle === 'OSM' || context._mapboxFailed) {
+      mapboxgl.accessToken = '';
+    }
+
     const foundStyle = styles.find((d) => d.title === activeStyle);
     const { style, config } =
-      foundStyle || styles.find((d) => d.title === 'Standard');
+      foundStyle || styles.find((d) => d.title === 'OSM') || styles[0];
 
     context.map = new mapboxgl.Map({
       container: 'map',
@@ -119,7 +124,10 @@ module.exports = function (context, readonly) {
     // Detect if Mapbox fails to authorize (401)
     context.map.on('error', (e) => {
       const msg = (e.error?.message || e.error || '').toString();
-      if (msg.includes('Unauthorized') || msg.includes('invalid Mapbox access token')) {
+      if (msg.includes('Unauthorized') || msg.includes('invalid Mapbox access token') || msg.includes('401')) {
+        if (context._fallingBack) return;
+        context._fallingBack = true;
+        context._mapboxFailed = true;
         console.warn('Mapbox authorization failed (401). Falling back to OpenStreetMap.');
 
         // Clear token so further requests (glyphs/sprites) don't use it
@@ -127,14 +135,14 @@ module.exports = function (context, readonly) {
 
         const osmStyle = styles.find(s => s.title === 'OSM')?.style;
         if (osmStyle && context.map.getStyle()?.name !== 'osm') {
-          // Delay to let the map settle
+          // Force setStyle with non-diff to fully replace the broken style
           setTimeout(() => {
             try {
-              context.map.setStyle(osmStyle);
+              context.map.setStyle(osmStyle, { diff: false });
             } catch (err) {
               console.error('Failed to set fallback style:', err);
             }
-          }, 500);
+          }, 300);
         }
       }
     });
@@ -146,7 +154,7 @@ module.exports = function (context, readonly) {
         onAdd(map) {
           this._map = map;
           const el = document.createElement('div');
-          el.className = 'mapboxgl-ctrl mapboxgl-ctrl-group irrigation-ctrl';
+          el.className = 'mapboxgl-ctrl irrigation-ctrl';
           el.innerHTML = `
             <button class="irrigation-btn gps-head" title="Add Sprinkler @ My Location" aria-label="Add Sprinkler @ My Location">
               <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
