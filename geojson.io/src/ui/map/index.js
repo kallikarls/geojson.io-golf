@@ -100,10 +100,17 @@ module.exports = function (context, readonly) {
     );
 
     const projection = context.storage.get('projection') || DEFAULT_PROJECTION;
-    const activeStyle = context.storage.get('style') || DEFAULT_STYLE;
+    let activeStyle = context.storage.get('style') || DEFAULT_STYLE;
 
-    // If defaulting to OSM or if we previously failed, clear the token to avoid 401 noise
-    if (activeStyle === 'OSM' || context._mapboxFailed) {
+    // FORCE OSM if the current style is a Mapbox style, to bypass the token issues
+    if (activeStyle !== 'OSM') {
+      console.warn(`Redirecting map style from ${activeStyle} to OSM due to authentication issues.`);
+      activeStyle = 'OSM';
+      context.storage.set('style', 'OSM');
+    }
+
+    // Always clear token when using OSM to avoid side-effect errors (glyphs/analytics)
+    if (activeStyle === 'OSM') {
       mapboxgl.accessToken = '';
     }
 
@@ -124,23 +131,24 @@ module.exports = function (context, readonly) {
     // Detect if Mapbox fails to authorize (401)
     context.map.on('error', (e) => {
       const msg = (e.error?.message || e.error || '').toString();
-      if (msg.includes('Unauthorized') || msg.includes('invalid Mapbox access token') || msg.includes('401')) {
+      // Only trigger fallback if we somehow started with a Mapbox style and it failed
+      if (msg.includes('Unauthorized') || msg.includes('401') || msg.includes('invalid Mapbox access token')) {
         if (context._fallingBack) return;
         context._fallingBack = true;
-        context._mapboxFailed = true;
-        console.warn('Mapbox authorization failed (401). Falling back to OpenStreetMap.');
 
-        // Clear token so further requests (glyphs/sprites) don't use it
+        console.warn('Mapbox error detected. Ensuring fallback to OSM.');
         mapboxgl.accessToken = '';
 
         const osmStyle = styles.find(s => s.title === 'OSM')?.style;
         if (osmStyle && context.map.getStyle()?.name !== 'osm') {
-          // Force setStyle with non-diff to fully replace the broken style
           setTimeout(() => {
             try {
               context.map.setStyle(osmStyle, { diff: false });
             } catch (err) {
-              console.error('Failed to set fallback style:', err);
+              // If setStyle fails because the map is not ready, just reload with the new default
+              if (err.message?.includes('not done loading')) {
+                window.location.reload();
+              }
             }
           }, 300);
         }

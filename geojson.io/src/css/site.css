@@ -655,7 +655,10 @@ div.children a {
   line-height: 1.1;
   font-size: 12px;
   border-radius: 12px;
-  border-top: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  outline: none !important;
 }
 
 .irrigation-ctrl .irrigation-btn svg {
