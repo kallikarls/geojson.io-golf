@@ -578,6 +578,13 @@ module.exports = function (context, readonly) {
     const handleLinestringOrPolygonClick = (e) => {
       // prevent this popup from opening when the original click was on a marker
       const el = e.originalEvent.target;
+      console.log('Map Click detected:', {
+        nodeName: el.nodeName,
+        drawingState: drawing,
+        editingState: editing,
+        pointFeatures: context.data.get('map')?.features?.length
+      });
+
       if (el.nodeName !== 'CANVAS') return;
       // prevent this popup from opening when drawing new features
       if (drawing) return;
