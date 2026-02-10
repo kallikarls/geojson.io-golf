@@ -198,18 +198,12 @@ module.exports = function (context, readonly) {
       }
 
       // Filter draw styles to remove text-field and text-font if we are in OSM mode (no token)
-      // This prevents the "glyphs" error crash
-      const sanitizedDrawStyles = drawStyles.map(style => {
-        if (style.layout && (style.layout['text-field'] || style.layout['text-font'])) {
-          if (!mapboxgl.accessToken) {
-            // Create a deep copy to avoid mutating the original export if it's cached
-            const safeStyle = JSON.parse(JSON.stringify(style));
-            delete safeStyle.layout['text-field'];
-            delete safeStyle.layout['text-font'];
-            return safeStyle;
-          }
+      // This prevents the "glyphs" error crash and symbol placement errors
+      const sanitizedDrawStyles = drawStyles.filter(style => {
+        if (!mapboxgl.accessToken && style.layout && (style.layout['text-field'] || style.layout['text-font'])) {
+          return false; // Completely remove symbol layers
         }
-        return style;
+        return true;
       });
 
       context.Draw = new MapboxDraw({
@@ -475,8 +469,7 @@ module.exports = function (context, readonly) {
         source: 'map-data',
         paint: {
           'fill-color': ['coalesce', ['get', 'fill'], color],
-          'fill-opacity': ['coalesce', ['get', 'fill-opacity'], 0.3],
-          'fill-emissive-strength': 1
+          'fill-opacity': ['coalesce', ['get', 'fill-opacity'], 0.3]
         },
         filter: ['==', ['geometry-type'], 'Polygon']
       });
@@ -488,8 +481,7 @@ module.exports = function (context, readonly) {
         paint: {
           'line-color': ['coalesce', ['get', 'stroke'], color],
           'line-width': ['coalesce', ['get', 'stroke-width'], 2],
-          'line-opacity': ['coalesce', ['get', 'stroke-opacity'], 1],
-          'line-emissive-strength': 1
+          'line-opacity': ['coalesce', ['get', 'stroke-opacity'], 1]
         },
         filter: ['==', ['geometry-type'], 'Polygon']
       });
@@ -501,8 +493,7 @@ module.exports = function (context, readonly) {
         paint: {
           'line-color': ['coalesce', ['get', 'stroke'], color],
           'line-width': ['coalesce', ['get', 'stroke-width'], 2],
-          'line-opacity': ['coalesce', ['get', 'stroke-opacity'], 1],
-          'line-emissive-strength': 1
+          'line-opacity': ['coalesce', ['get', 'stroke-opacity'], 1]
         },
         filter: ['==', ['geometry-type'], 'LineString']
       });
@@ -516,8 +507,7 @@ module.exports = function (context, readonly) {
           'circle-radius': ['coalesce', ['get', 'point-radius'], 6],
           'circle-opacity': ['coalesce', ['get', 'fill-opacity'], 1],
           'circle-stroke-color': ['coalesce', ['get', 'stroke'], '#000'],
-          'circle-stroke-width': ['coalesce', ['get', 'stroke-width'], 1],
-          'circle-emissive-strength': 1
+          'circle-stroke-width': ['coalesce', ['get', 'stroke-width'], 1]
         },
         filter: ['==', ['geometry-type'], 'Point']
       });

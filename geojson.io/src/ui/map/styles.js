@@ -1,54 +1,14 @@
 module.exports = [
   {
-    title: 'Standard',
-    style: 'mapbox://styles/mapbox/standard',
-    config: {
-      basemap: {
-        show3dObjects: false
-      }
-    }
-  },
-  {
-    title: 'Standard Satellite',
-    style: 'mapbox://styles/mapbox/standard-satellite'
-  },
-  {
-    title: 'Standard Light',
-    style: 'mapbox://styles/mapbox/standard',
-    config: {
-      basemap: {
-        show3dObjects: false,
-        theme: 'monochrome'
-      }
-    }
-  },
-  {
-    title: 'Standard Dark',
-    style: 'mapbox://styles/mapbox/standard',
-    config: {
-      basemap: {
-        show3dObjects: false,
-        theme: 'monochrome',
-        lightPreset: 'night'
-      }
-    }
-  },
-  {
-    title: 'Outdoors',
-    style: 'mapbox://styles/mapbox/outdoors-v12'
-  },
-  {
     title: 'OSM',
     style: {
-      name: 'osm',
       version: 8,
       sources: {
         'osm-raster-tiles': {
           type: 'raster',
           tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
           tileSize: 256,
-          attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }
       },
       layers: [
