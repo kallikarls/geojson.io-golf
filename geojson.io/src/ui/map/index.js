@@ -604,7 +604,7 @@ module.exports = function (context, readonly) {
           type: 'Feature',
           geometry: { type: 'Point', coordinates: [lng, lat] },
           properties: {
-            layer: 'irrigation.head',
+            layer: 'irrigation.sprinkler',
             source: 'gps',
             accuracy_m: Math.round(pos.coords.accuracy || 0),
             createdUtc: new Date().toISOString()

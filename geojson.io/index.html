@@ -74,167 +74,251 @@
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-3K6EEFGNP0"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
+    function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
 
     gtag('config', 'G-3K6EEFGNP0');
   </script>
 
-<style>
-  /* framebust guard */
-  body { display: none; }
+  <style>
+    /* framebust guard: initially hidden by JS, shown if top == self */
+    .hidden-by-guard {
+      display: none !important;
+    }
 
-  /* Desktop/large only: show the file-bar */
-  @media (min-width: 901px) {
-    .file-bar { display: flex !important; }
-  }
+    /* Desktop/large only: show the file-bar */
+    @media (min-width: 901px) {
+      .file-bar {
+        display: flex !important;
+      }
+    }
 
-  /* MOBILE / PDA */
-  @media (max-width: 900px) {
+    /* MOBILE / PDA */
+    @media (max-width: 900px) {
 
-    /* Move the geojson.io title to the right so it doesn't sit behind the hamburger */
-    .topbar .branding,
-    .topbar h1,
-    .topbar .site-title,
-    header .branding,
-    header h1,
-    header .site-title {
-      margin-left: 44px !important;  /* same space as the hamburger + gap */
+      /* Move the geojson.io title to the right so it doesn't sit behind the hamburger */
+      .topbar .branding,
+      .topbar h1,
+      .topbar .site-title,
+      header .branding,
+      header h1,
+      header .site-title {
+        margin-left: 44px !important;
+        /* same space as the hamburger + gap */
+        display: inline-block;
+      }
+
+      /* Hide layer + projection switches */
+      .layer-switch,
+      .projection-switch {
+        display: none !important;
+      }
+
+      /* Optional: hide bottom-left wrapper */
+      .mapboxgl-ctrl-bottom-left {
+        display: none !important;
+      }
+
+      /* Hide the editor sidebar (your actual class combo) */
+      .right.flex.flex-col.bg-white.relative,
+      [class~="right"][class~="flex-col"][class~="bg-white"][class~="relative"] {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        max-width: 0 !important;
+        max-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+      }
+
+      /* Fill screen with the map; neutralize basis-0 */
+      .map {
+        display: block !important;
+        flex: 1 1 auto !important;
+        flex-basis: 100% !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 100vh !important;
+      }
+
+      .map.basis-0 {
+        flex-basis: 100% !important;
+      }
+
+      /* Fullscreen page, no scrollbars */
+      html,
+      body {
+        height: 100%;
+        overflow: hidden;
+        margin: 0;
+      }
+
+      /* KEEP the top bar visible on mobile and reserve space for burger */
+      .topbar,
+      header {
+        position: relative !important;
+        padding-left: 44px !important;
+        /* 36px button + 8px gap */
+        z-index: 10005;
+      }
+
+      /* Hide original file-bar on mobile (menu replaces it) */
+      .topbar .file-bar,
+      header .file-bar,
+      .file-bar {
+        display: none !important;
+      }
+
+      /* Search (Mapbox geocoder / custom) — hide on mobile */
+      .mapboxgl-ctrl-geocoder,
+      #search,
+      .search,
+      input[type="search"] {
+        display: none !important;
+      }
+
+      /* Reserve space for the hamburger inside the actual header row */
+      .geojsonio .text-white.bg-mb-gray-dark.font-sans.px-3.flex,
+      .geojsonio .px-3.flex {
+        padding-left: 44px !important;
+        /* 36px button + 8px gap */
+      }
+
+      /* Hamburger button (inside top bar) */
+      .mobile-menu-btn {
+        position: absolute !important;
+        top: 6px !important;
+        left: 6px !important;
+        z-index: 10010 !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        color: #000 !important;
+        /* black icon/text */
+        border: none;
+        border-radius: 8px;
+        background: #fff;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, .15);
+        font-size: 20px;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      /* Mobile dropdown styling fix */
+      .mobile-menu {
+        position: absolute !important;
+        top: 44px !important;
+        left: 6px !important;
+        z-index: 10010 !important;
+
+        /* visual */
+        background: #fff !important;
+        /* white background */
+        color: #000 !important;
+        /* black text */
+        border-radius: 10px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
+        padding: 6px;
+        min-width: 160px;
+        display: none;
+        font-family: system-ui, sans-serif;
+      }
+
+      .mobile-menu.open {
+        display: block;
+      }
+
+      .mobile-menu button {
+        width: 100%;
+        padding: 10px 12px;
+        text-align: left;
+        background: transparent;
+        border: none;
+        border-radius: 8px;
+        color: #000 !important;
+        /* ensure readable text */
+        font-size: 14px;
+        cursor: pointer;
+      }
+
+      .mobile-menu button:hover {
+        background: rgba(0, 0, 0, .06);
+      }
+    }
+
+    /* Floating action buttons — top-left stack */
+    .geo-fab {
+      position: absolute;
+      left: 12px;
+      z-index: 10020;
+      /* above header/menu */
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      line-height: 1.1;
+      text-align: center;
+      background: #fff;
+      border: none;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, .22);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* Put the stack *below* the header (44px burger + 8px gap) */
+    #fab-sprinkler {
+      top: 56px;
+    }
+
+    /* first button */
+    #fab-pump {
+      top: 124px;
+    }
+
+    /* second button (56 + 12 gap) */
+
+    .geo-fab span {
+      color: #000;
+      padding: 0 6px;
+    }
+
+    .geo-fab:active {
+      transform: scale(0.97);
+    }
+
+    /* Optional: subtle success toast */
+    .geo-toast {
+      position: absolute;
+      left: 50%;
+      bottom: 150px;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, .85);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      z-index: 10030;
+      display: none;
+    }
+
+    .geo-toast.show {
       display: inline-block;
     }
-
-    /* Hide layer + projection switches */
-    .layer-switch, .projection-switch { display: none !important; }
-
-    /* Optional: hide bottom-left wrapper */
-    .mapboxgl-ctrl-bottom-left { display: none !important; }
-
-    /* Hide the editor sidebar (your actual class combo) */
-    .right.flex.flex-col.bg-white.relative,
-    [class~="right"][class~="flex-col"][class~="bg-white"][class~="relative"] {
-      display: none !important;
-      width: 0 !important; height: 0 !important;
-      max-width: 0 !important; max-height: 0 !important;
-      padding: 0 !important; margin: 0 !important;
-      overflow: hidden !important;
-    }
-
-    /* Fill screen with the map; neutralize basis-0 */
-    .map {
-      display: block !important;
-      flex: 1 1 auto !important;
-      flex-basis: 100% !important;
-      width: 100% !important; max-width: 100% !important;
-      height: 100vh !important;
-    }
-    .map.basis-0 { flex-basis: 100% !important; }
-
-    /* Fullscreen page, no scrollbars */
-    html, body { height: 100%; overflow: hidden; margin: 0; }
-
-    /* KEEP the top bar visible on mobile and reserve space for burger */
-    .topbar, header {
-      position: relative !important;
-      padding-left: 44px !important;   /* 36px button + 8px gap */
-      z-index: 10005;
-    }
-
-    /* Hide original file-bar on mobile (menu replaces it) */
-    .topbar .file-bar, header .file-bar, .file-bar {
-      display: none !important;
-    }
-
-    /* Search (Mapbox geocoder / custom) — hide on mobile */
-    .mapboxgl-ctrl-geocoder, #search, .search, input[type="search"] {
-      display: none !important;
-    }
-
-    /* Reserve space for the hamburger inside the actual header row */
-    .geojsonio .text-white.bg-mb-gray-dark.font-sans.px-3.flex,
-    .geojsonio .px-3.flex {
-      padding-left: 44px !important; /* 36px button + 8px gap */
-    }
-
-    /* Hamburger button (inside top bar) */
-    .mobile-menu-btn {
-      position: absolute !important;
-      top: 6px !important; left: 6px !important;
-      z-index: 10010 !important;
-      display: flex; align-items: center; justify-content: center;
-      width: 36px; height: 36px;
-      color: #000 !important;      /* black icon/text */
-      border: none; border-radius: 8px;
-      background: #fff;
-      box-shadow: 0 2px 10px rgba(0,0,0,.15);
-      font-size: 20px; line-height: 1; cursor: pointer;
-    }
-
-    /* Mobile dropdown styling fix */
-    .mobile-menu {
-      position: absolute !important;
-      top: 44px !important;
-      left: 6px !important;
-      z-index: 10010 !important;
-
-      /* visual */
-      background: #fff !important;        /* white background */
-      color: #000 !important;             /* black text */
-      border-radius: 10px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
-      padding: 6px;
-      min-width: 160px;
-      display: none;
-      font-family: system-ui, sans-serif;
-    }
-
-    .mobile-menu.open { display: block; }
-
-    .mobile-menu button {
-      width: 100%; padding: 10px 12px; text-align: left;
-      background: transparent; border: none; border-radius: 8px;
-      color: #000 !important;             /* ensure readable text */
-      font-size: 14px; cursor: pointer;
-    }
-    .mobile-menu button:hover { background: rgba(0,0,0,.06); }
-  }
-
-  /* Floating action buttons — top-left stack */
-  .geo-fab {
-    position: absolute;
-    left: 12px;
-    z-index: 10020;                 /* above header/menu */
-    width: 56px; height: 56px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px; line-height: 1.1; text-align: center;
-    background: #fff; border: none;
-    box-shadow: 0 6px 18px rgba(0,0,0,.22);
-    cursor: pointer; user-select: none;
-  }
-
-  /* Put the stack *below* the header (44px burger + 8px gap) */
-  #fab-sprinkler { top: 56px; }     /* first button */
-  #fab-pump      { top: 124px; }    /* second button (56 + 12 gap) */
-
-  .geo-fab span { color: #000; padding: 0 6px; }
-  .geo-fab:active { transform: scale(0.97); }
-
-  /* Optional: subtle success toast */
-  .geo-toast {
-    position: absolute; left: 50%; bottom: 150px; transform: translateX(-50%);
-    background: rgba(0,0,0,.85); color: #fff; padding: 8px 12px; border-radius: 8px;
-    font-size: 13px; z-index: 10030; display: none;
-  }
-  .geo-toast.show { display: inline-block; }
-</style>
+  </style>
 
 
 </head>
 
-<body id="geojsonio-body" class="h-full">
+<body id="geojsonio-body" class="h-full hidden-by-guard">
   <div class="geojsonio flex flex-col h-full">
     <div class="text-white bg-mb-gray-dark font-sans px-3 flex">
-      <div class="font-extrabold flex items-center tracking-wide text-base">        geojson.io
+      <div class="font-extrabold flex items-center tracking-wide text-base"> geojson.io
       </div>
       <div class="flex-grow flex justify-end">
         <div style="height: 42px"></div>
@@ -258,11 +342,13 @@
     </div>
   </div>
   <script>
-    if (self == top) {
-      document.getElementsByTagName("body")[0].style.display = "block";
-    } else {
-      top.location = self.location;
-    }
+    (function () {
+      if (self === top) {
+        document.getElementById("geojsonio-body").classList.remove("hidden-by-guard");
+      } else {
+        top.location = self.location;
+      }
+    })();
   </script>
   <script src="dist/bundle.js"></script>
 
@@ -276,101 +362,101 @@
     });
   </script>
 
-<script>
-(function () {
-  const isMobile = window.matchMedia('(max-width: 900px)').matches;
+  <script>
+    (function () {
+      const isMobile = window.matchMedia('(max-width: 900px)').matches;
 
-  function cleanFileBar() {
-    document.querySelectorAll('.file-bar').forEach(fb => {
-      fb.querySelectorAll('a,button,span,div').forEach(el => {
-        const t = (el.textContent || '').trim().toLowerCase();
-        if (t === 'meta') el.style.display = 'none';
-      });
-      if (isMobile) fb.style.setProperty('display', 'none', 'important');
-    });
-  }
-
-  function buildMobileMenu() {
-    if (!isMobile) return;
-
-    const anchor =
-      document.querySelector('.geojsonio .text-white.bg-mb-gray-dark.font-sans.px-3.flex') ||
-      document.querySelector('.topbar, header') ||
-      document.body;
-
-    const btn = document.createElement('button');
-    btn.className = 'mobile-menu-btn';
-    btn.setAttribute('aria-label', 'Menu');
-    btn.textContent = '☰';
-
-    const menu = document.createElement('div');
-    menu.className = 'mobile-menu';
-    ['Open', 'Save', 'New'].forEach(name => {
-      const b = document.createElement('button');
-      b.dataset.action = name;
-      b.textContent = name;
-      menu.appendChild(b);
-    });
-
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      menu.classList.toggle('open');
-    });
-    document.addEventListener('click', () => menu.classList.remove('open'));
-
-    // ✅ NEW: special-case "Save" to call the original downloadGeoJSON
-    menu.addEventListener('click', e => {
-      const b = e.target.closest('button[data-action]');
-      if (!b) return;
-
-      const action = (b.dataset.action || '').toLowerCase();
-      if (action === 'save') {
-        e.preventDefault();
-        e.stopPropagation();
-
-        // Prefer the original function exposed from fileBar.js
-        const fn = window.context?.actions?.downloadGeoJSON;
-        if (typeof fn === 'function') {
-          fn();
-        } else {
-          // Fallback: click the "GeoJSON" submenu entry in the hidden file-bar
-          const geoBtn = [...document.querySelectorAll('.file-bar .children a')]
-            .find(el => (el.textContent || '').trim().toLowerCase() === 'geojson');
-          if (geoBtn) {
-            geoBtn.click();
-          } else {
-            console.warn('GeoJSON export not found; ensure fileBar is initialized.');
-          }
-        }
-
-        // close menu + light haptic
-        menu.classList.remove('open');
-        if (navigator.vibrate) navigator.vibrate(20);
-        return;
+      function cleanFileBar() {
+        document.querySelectorAll('.file-bar').forEach(fb => {
+          fb.querySelectorAll('a,button,span,div').forEach(el => {
+            const t = (el.textContent || '').trim().toLowerCase();
+            if (t === 'meta') el.style.display = 'none';
+          });
+          if (isMobile) fb.style.setProperty('display', 'none', 'important');
+        });
       }
 
-      // Default: forward Open/New to the real file-bar items by label
-      const targetLabel = action;
-      const real = [...document.querySelectorAll('.file-bar a, .file-bar button')]
-        .find(el => (el.textContent || '').trim().toLowerCase() === targetLabel);
-      if (real) real.click(); else console.warn('file-bar button not found:', targetLabel);
-      menu.classList.remove('open');
-    });
+      function buildMobileMenu() {
+        if (!isMobile) return;
 
-    anchor.appendChild(btn);
-    anchor.appendChild(menu);
-  }
+        const anchor =
+          document.querySelector('.geojsonio .text-white.bg-mb-gray-dark.font-sans.px-3.flex') ||
+          document.querySelector('.topbar, header') ||
+          document.body;
 
-  window.addEventListener('load', function () {
-    cleanFileBar();
-    buildMobileMenu();
+        const btn = document.createElement('button');
+        btn.className = 'mobile-menu-btn';
+        btn.setAttribute('aria-label', 'Menu');
+        btn.textContent = '☰';
 
-    if (isMobile && window.context?.map?.resize) {
-      setTimeout(() => window.context.map.resize(), 200);
-    }
-  });
-})();
-</script>
+        const menu = document.createElement('div');
+        menu.className = 'mobile-menu';
+        ['Open', 'Save', 'New'].forEach(name => {
+          const b = document.createElement('button');
+          b.dataset.action = name;
+          b.textContent = name;
+          menu.appendChild(b);
+        });
+
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          menu.classList.toggle('open');
+        });
+        document.addEventListener('click', () => menu.classList.remove('open'));
+
+        // ✅ NEW: special-case "Save" to call the original downloadGeoJSON
+        menu.addEventListener('click', e => {
+          const b = e.target.closest('button[data-action]');
+          if (!b) return;
+
+          const action = (b.dataset.action || '').toLowerCase();
+          if (action === 'save') {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Prefer the original function exposed from fileBar.js
+            const fn = window.context?.actions?.downloadGeoJSON;
+            if (typeof fn === 'function') {
+              fn();
+            } else {
+              // Fallback: click the "GeoJSON" submenu entry in the hidden file-bar
+              const geoBtn = [...document.querySelectorAll('.file-bar .children a')]
+                .find(el => (el.textContent || '').trim().toLowerCase() === 'geojson');
+              if (geoBtn) {
+                geoBtn.click();
+              } else {
+                console.warn('GeoJSON export not found; ensure fileBar is initialized.');
+              }
+            }
+
+            // close menu + light haptic
+            menu.classList.remove('open');
+            if (navigator.vibrate) navigator.vibrate(20);
+            return;
+          }
+
+          // Default: forward Open/New to the real file-bar items by label
+          const targetLabel = action;
+          const real = [...document.querySelectorAll('.file-bar a, .file-bar button')]
+            .find(el => (el.textContent || '').trim().toLowerCase() === targetLabel);
+          if (real) real.click(); else console.warn('file-bar button not found:', targetLabel);
+          menu.classList.remove('open');
+        });
+
+        anchor.appendChild(btn);
+        anchor.appendChild(menu);
+      }
+
+      window.addEventListener('load', function () {
+        cleanFileBar();
+        buildMobileMenu();
+
+        if (isMobile && window.context?.map?.resize) {
+          setTimeout(() => window.context.map.resize(), 200);
+        }
+      });
+    })();
+  </script>
 
 </body>
 
