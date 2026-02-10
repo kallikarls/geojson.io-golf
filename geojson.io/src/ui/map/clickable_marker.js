@@ -45,6 +45,7 @@ class ClickableMarker extends mapboxgl.Marker {
       this._handleClick &&
       (targetElement === element || element.contains(targetElement))
     ) {
+      e.originalEvent.stopPropagation(); // Stop map click!
       this._handleClick();
     }
   }

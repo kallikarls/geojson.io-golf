@@ -153,18 +153,7 @@ const addMarkers = (geojson, context, writable) => {
       })
       .addTo(context.map);
 
-    // Explicitly handle clicks on the marker element (fixing ClickableMarker reliability)
-    marker.getElement().addEventListener('click', (e) => {
-      e.stopPropagation(); // Prevent map click
-      bindPopup(
-        {
-          lngLat: d.geometry.coordinates,
-          features: [d]
-        },
-        context,
-        writable
-      );
-    });
+    // Update the dot in the Marker for Dark base map style
 
     marker.getElement().addEventListener('touchstart', () => {
       bindPopup(
