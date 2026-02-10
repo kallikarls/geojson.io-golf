@@ -6,7 +6,7 @@ class EditControl {
       'mapboxgl-ctrl-group mapboxgl-ctrl edit-control hidden';
 
     this._container.innerHTML = `
-            <button class="mapbox-gl-draw_ctrl-draw-btn mapbox-gl-draw_edit" title="Edit geometries" style="background-image: url(img/edit.svg); background-size: 13px 13px;">
+            <button class="mapbox-gl-draw_ctrl-draw-btn mapbox-gl-draw_edit" title="Edit geometries" style="background-image: url(img/edit.svg); background-size: 13px 13px; pointer-events: auto; cursor: pointer;">
               
             </button>
           `;

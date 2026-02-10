@@ -419,6 +419,7 @@ module.exports = function (context, readonly) {
 
       // enter edit mode
       d3.selectAll('.mapbox-gl-draw_edit').on('click', () => {
+        console.log('Edit button clicked!');
         editing = true;
         // hide the edit button and draw tools
         d3.select('.edit-control').style('display', 'none');

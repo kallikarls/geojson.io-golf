@@ -486,7 +486,7 @@ function bindPopup(e, context, writable) {
 
   const p = new mapboxgl.Popup({
     closeButton: false,
-    maxWidth: '251px',
+    maxWidth: '350px',
     offset: popupOffsets,
     className: 'geojsonio-feature'
   })
