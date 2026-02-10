@@ -67,7 +67,7 @@ datalist {
 ------------------------------------------------------- */
 .tabs-ui {
   position: relative;
-  width: 250px;
+  width: 100%;
 }
 
 .tabs-ui>* {

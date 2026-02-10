@@ -24,10 +24,10 @@ class SaveCancelControl {
     this._container.innerHTML = `
             <div class='font-bold mb-0.5'>Editing Geometries</div>
               <div class="flex">
-                <button class='mapboxgl-draw-actions-btn mapboxgl-draw-actions-btn_save txt-xs bg-gray-500 hover:bg-gray-700 text-white font-bold py-0 px-2 rounded' title="Save changes.">
+                <button class='mapboxgl-draw-actions-btn mapboxgl-draw-actions-btn_save txt-xs bg-gray-500 hover:bg-gray-700 text-white font-bold py-0 px-2 rounded' title="Save changes." style="pointer-events: auto; cursor: pointer;">
                   Save
                 </button>
-                <button class='mapboxgl-draw-actions-btn mapboxgl-draw-actions-btn_cancel ml-1 txt-xs bg-gray-500 hover:bg-gray-700 text-white font-bold py-0 px-2 rounded' title="Cancel editing, discards all changes.">
+                <button class='mapboxgl-draw-actions-btn mapboxgl-draw-actions-btn_cancel ml-1 txt-xs bg-gray-500 hover:bg-gray-700 text-white font-bold py-0 px-2 rounded' title="Cancel editing, discards all changes." style="pointer-events: auto; cursor: pointer;">
                   Cancel
                 </button>
               </div>
@@ -44,7 +44,7 @@ class TrashControl {
       'mapboxgl-ctrl-group mapboxgl-ctrl trash-control';
     this._container.style = 'display: none;';
     this._container.innerHTML = `
-        <button class="mapbox-gl-draw_ctrl-draw-btn mapbox-gl-draw_trash" title="Delete">
+        <button class="mapbox-gl-draw_ctrl-draw-btn mapbox-gl-draw_trash" title="Delete" style="background-image: url(img/delete.svg); background-size: 18px 18px; pointer-events: auto; cursor: pointer;">
         </button>
       `;
 
