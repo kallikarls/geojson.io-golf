@@ -693,6 +693,24 @@ module.exports = function (context, readonly) {
 
       } catch (err) {
         console.warn('Geolocation failed:', err);
+        // Fallback for testing/desktop: Use map center
+        console.log('Falling back to map center (Sprinkler)');
+        const center = context.map.getCenter();
+        const lng = center.lng;
+        const lat = center.lat;
+
+        // Create the sprinkler head feature
+        const feature = {
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [lng, lat] },
+          properties: {
+            layer: 'irrigation.sprinkler',
+            source: 'manual_fallback',
+            accuracy_m: 0,
+            createdUtc: new Date().toISOString()
+          }
+        };
+        update(stripIds([feature]));
       }
     }
 
@@ -730,6 +748,26 @@ module.exports = function (context, readonly) {
         if (navigator.vibrate) navigator.vibrate(30);
       } catch (err) {
         console.warn('Geolocation failed:', err);
+        // Fallback for testing/desktop: Use map center
+        console.log('Falling back to map center (Pump)');
+        const center = context.map.getCenter();
+        const lng = center.lng;
+        const lat = center.lat;
+
+        const feature = {
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [lng, lat] },
+          properties: {
+            layer: 'irrigation.pump',
+            source: 'manual_fallback',
+            accuracy_m: 0,
+            createdUtc: new Date().toISOString(),
+            'marker-color': '#0a8f5b',
+            'point-radius': 8
+          }
+        };
+
+        update(stripIds([feature]));
       }
     }
 
