@@ -138,8 +138,8 @@ module.exports = function (context, readonly) {
               <span>Pump</span>
             </button>
           `;
-          el.querySelector('.gps-head') .addEventListener('click', () => addHeadAtGPS());
-          el.querySelector('.gps-pump') .addEventListener('click', () => addPumpAtGPS());
+          el.querySelector('.gps-head').addEventListener('click', () => addHeadAtGPS());
+          el.querySelector('.gps-pump').addEventListener('click', () => addPumpAtGPS());
           this._container = el;
           return el;
         }
@@ -380,104 +380,112 @@ module.exports = function (context, readonly) {
       });
     }
 
-    context.map.on('idle', () => {
-      if (
-        context.data.get('mapStyleLoaded') &&
-        !context.map.getSource('map-data')
-      ) {
-        let color = DEFAULT_DARK_FEATURE_COLOR; // Sets default dark color for lighter base maps
+    function initializeMapResources() {
+      if (context.map.getSource('map-data')) return;
 
-        // switch to darker feature color for dark base maps
-        let config;
-        const { imports } = context.map.getStyle();
+      console.log("Initializing map sources and layers");
+      let color = DEFAULT_DARK_FEATURE_COLOR;
 
-        if (imports && imports.length > 0) {
+      // Check for Standard Dark or Standard Satellite theme presets
+      let config;
+      try {
+        const style = context.map.getStyle();
+        if (style.imports && style.imports.length > 0) {
           config = context.map.getConfig('basemap');
         }
+      } catch (e) {
+        console.warn('Could not read map config for theme detection', e);
+      }
 
-        if (config) {
-          // check for Standard Dark or Standard Satellite, these two should use lighter feature colors
-          if (config.theme === 'monochrome' && config.lightPreset === 'night') {
-            color = DEFAULT_LIGHT_FEATURE_COLOR;
-          }
-
-          if (imports[0].data.name === 'Mapbox Standard Satellite') {
-            color = DEFAULT_SATELLITE_FEATURE_COLOR;
-          }
+      if (config) {
+        if (config.theme === 'monochrome' && config.lightPreset === 'night') {
+          color = DEFAULT_LIGHT_FEATURE_COLOR;
         }
+        // Special case for Standard Satellite
+        const styleInfo = context.map.getStyle();
+        if (styleInfo.imports?.[0]?.data?.name === 'Mapbox Standard Satellite') {
+          color = DEFAULT_SATELLITE_FEATURE_COLOR;
+        }
+      }
 
-        context.map.addSource('map-data', {
-          type: 'geojson',
-          data: dummyGeojson
-        });
+      context.map.addSource('map-data', {
+        type: 'geojson',
+        data: dummyGeojson
+      });
 
-        context.map.addLayer({
-          id: 'map-data-fill',
-          type: 'fill',
-          source: 'map-data',
-          paint: {
-            'fill-color': ['coalesce', ['get', 'fill'], color],
-            'fill-opacity': ['coalesce', ['get', 'fill-opacity'], 0.3],
-            'fill-emissive-strength': 1
-          },
-          filter: ['==', ['geometry-type'], 'Polygon']
-        });
+      context.map.addLayer({
+        id: 'map-data-fill',
+        type: 'fill',
+        source: 'map-data',
+        paint: {
+          'fill-color': ['coalesce', ['get', 'fill'], color],
+          'fill-opacity': ['coalesce', ['get', 'fill-opacity'], 0.3],
+          'fill-emissive-strength': 1
+        },
+        filter: ['==', ['geometry-type'], 'Polygon']
+      });
 
-        context.map.addLayer({
-          id: 'map-data-fill-outline',
-          type: 'line',
-          source: 'map-data',
-          paint: {
-            'line-color': ['coalesce', ['get', 'stroke'], color],
-            'line-width': ['coalesce', ['get', 'stroke-width'], 2],
-            'line-opacity': ['coalesce', ['get', 'stroke-opacity'], 1],
-            'line-emissive-strength': 1
-          },
-          filter: ['==', ['geometry-type'], 'Polygon']
-        });
+      context.map.addLayer({
+        id: 'map-data-fill-outline',
+        type: 'line',
+        source: 'map-data',
+        paint: {
+          'line-color': ['coalesce', ['get', 'stroke'], color],
+          'line-width': ['coalesce', ['get', 'stroke-width'], 2],
+          'line-opacity': ['coalesce', ['get', 'stroke-opacity'], 1],
+          'line-emissive-strength': 1
+        },
+        filter: ['==', ['geometry-type'], 'Polygon']
+      });
 
-        context.map.addLayer({
-          id: 'map-data-line',
-          type: 'line',
-          source: 'map-data',
-          paint: {
-            'line-color': ['coalesce', ['get', 'stroke'], color],
-            'line-width': ['coalesce', ['get', 'stroke-width'], 2],
-            'line-opacity': ['coalesce', ['get', 'stroke-opacity'], 1],
-            'line-emissive-strength': 1
-          },
-          filter: ['==', ['geometry-type'], 'LineString']
-        });
+      context.map.addLayer({
+        id: 'map-data-line',
+        type: 'line',
+        source: 'map-data',
+        paint: {
+          'line-color': ['coalesce', ['get', 'stroke'], color],
+          'line-width': ['coalesce', ['get', 'stroke-width'], 2],
+          'line-opacity': ['coalesce', ['get', 'stroke-opacity'], 1],
+          'line-emissive-strength': 1
+        },
+        filter: ['==', ['geometry-type'], 'LineString']
+      });
 
-        context.map.addLayer({
-          id: 'map-data-point',
-          type: 'circle',
-          source: 'map-data',
-          paint: {
-            'circle-color': ['coalesce', ['get', 'marker-color'], color],
-            'circle-radius': ['coalesce', ['get', 'point-radius'], 6],
-            'circle-opacity': ['coalesce', ['get', 'fill-opacity'], 1],
-            'circle-stroke-color': ['coalesce', ['get', 'stroke'], '#000'],
-            'circle-stroke-width': ['coalesce', ['get', 'stroke-width'], 1],
-            'circle-emissive-strength': 1
-          },
-          filter: ['==', ['geometry-type'], 'Point']
-        });
+      context.map.addLayer({
+        id: 'map-data-point',
+        type: 'circle',
+        source: 'map-data',
+        paint: {
+          'circle-color': ['coalesce', ['get', 'marker-color'], color],
+          'circle-radius': ['coalesce', ['get', 'point-radius'], 6],
+          'circle-opacity': ['coalesce', ['get', 'fill-opacity'], 1],
+          'circle-stroke-color': ['coalesce', ['get', 'stroke'], '#000'],
+          'circle-stroke-width': ['coalesce', ['get', 'stroke-width'], 1],
+          'circle-emissive-strength': 1
+        },
+        filter: ['==', ['geometry-type'], 'Point']
+      });
 
-        // (optional) make them clickable like your other layers:
-        context.map.on('click', 'map-data-point', (e) => bindPopup(e, context, writable));
-        context.map.on('mouseenter', 'map-data-point', () => {
-          if (context.Draw.getMode() === 'simple_select') context.map.getCanvas().style.cursor = 'pointer';
-        });
-        context.map.on('mouseleave', 'map-data-point', () => {
-          if (context.Draw.getMode() === 'simple_select') context.map.getCanvas().style.removeProperty('cursor');
-        });
+      // (optional) make them clickable like your other layers:
+      context.map.on('click', 'map-data-point', (e) => bindPopup(e, context, writable));
+      context.map.on('mouseenter', 'map-data-point', () => {
+        if (context.Draw.getMode() === 'simple_select') context.map.getCanvas().style.cursor = 'pointer';
+      });
+      context.map.on('mouseleave', 'map-data-point', () => {
+        if (context.Draw.getMode() === 'simple_select') context.map.getCanvas().style.removeProperty('cursor');
+      });
 
-        geojsonToLayer(context, writable);
+      geojsonToLayer(context, writable);
+    }
 
-        context.data.set({
-          mapStyleLoaded: false
-        });
+    context.map.on('error', (e) => {
+      console.error('Mapbox error:', e.error?.message || e.error || 'Unknown map error');
+    });
+
+    context.map.on('idle', () => {
+      if (context.data.get('mapStyleLoaded')) {
+        initializeMapResources();
+        context.data.set({ mapStyleLoaded: false });
       }
     });
 
@@ -514,9 +522,11 @@ module.exports = function (context, readonly) {
     };
 
     context.map.on('load', () => {
+      console.log("Map load event fired");
       context.data.set({
         mapStyleLoaded: true
       });
+      initializeMapResources();
       context.map.on('mouseenter', 'map-data-fill', maybeSetCursorToPointer);
       context.map.on('mouseleave', 'map-data-fill', maybeResetCursor);
       context.map.on('mouseenter', 'map-data-line', maybeSetCursorToPointer);
@@ -573,7 +583,7 @@ module.exports = function (context, readonly) {
         const isOurRaster = l.id === 'esri-world-layer';
         const isOurData = l.id && l.id.startsWith('map-data-'); // your feature layers
         if (!isLabel && !isOurRaster && !isOurData) {
-          try { map.setLayoutProperty(l.id, 'visibility', 'none'); } catch {}
+          try { map.setLayoutProperty(l.id, 'visibility', 'none'); } catch { }
         }
       }
     }
@@ -691,7 +701,7 @@ module.exports = function (context, readonly) {
     }
 
     function isGolfLayer(layerName) {
-      return ['greens', 'bunkers', 'fairways', 'tees', 'drainage','irrigation.main'].includes(
+      return ['greens', 'bunkers', 'fairways', 'tees', 'drainage', 'irrigation.main'].includes(
         layerName
       );
     }
@@ -715,20 +725,20 @@ module.exports = function (context, readonly) {
   }
 
   // --- Hamburger menu wiring ---
-function onHamburgerSave(ev) {
-  ev.preventDefault();
-  ev.stopPropagation();
+  function onHamburgerSave(ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
 
-  if (window.context?.actions?.downloadGeoJSON) {
-    window.context.actions.downloadGeoJSON(); // ✅ use original save
-    if (navigator.vibrate) navigator.vibrate(20);
-  } else {
-    console.warn('downloadGeoJSON not found on context.actions');
+    if (window.context?.actions?.downloadGeoJSON) {
+      window.context.actions.downloadGeoJSON(); // ✅ use original save
+      if (navigator.vibrate) navigator.vibrate(20);
+    } else {
+      console.warn('downloadGeoJSON not found on context.actions');
+    }
   }
-}
 
-document.getElementById('menu-save')?.addEventListener('pointerup', onHamburgerSave, { passive: false });
-document.getElementById('menu-save')?.addEventListener('click', onHamburgerSave, { passive: false });
+  document.getElementById('menu-save')?.addEventListener('pointerup', onHamburgerSave, { passive: false });
+  document.getElementById('menu-save')?.addEventListener('click', onHamburgerSave, { passive: false });
 
   return map;
 };
