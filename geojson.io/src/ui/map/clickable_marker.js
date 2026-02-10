@@ -1,13 +1,13 @@
 // extend mapboxGL Marker so we can pass in an onClick handler
-const mapboxgl = require('mapbox-gl');
+const mapboxgl = require('maplibre-gl');
 
 class ClickableMarker extends mapboxgl.Marker {
   constructor(options, legacyOptions) {
     super(options, legacyOptions);
 
     const {
-        symbol = "circle",
-        symbolColor = "#fff"
+      symbol = "circle",
+      symbolColor = "#fff"
     } = options
 
     if (
@@ -18,7 +18,7 @@ class ClickableMarker extends mapboxgl.Marker {
       this._element.querySelector('circle').replaceWith(symbolPath)
 
       // download svg symbol and insert its path where the circle was
-      const xml = d3.xml(`../dist/icons/${symbol}.svg`, function(err, xml) {
+      const xml = d3.xml(`../dist/icons/${symbol}.svg`, function (err, xml) {
         if (err) {
           console.error(`Error downloading the svg from: ../dist/icons/${symbol}.svg`);
         } else {

@@ -15,8 +15,8 @@ require('../node_modules/@fortawesome/fontawesome-free/css/solid.min.css');
 // tailwind css
 require('../dist/css/tailwind_dist.css');
 
-// mapboxgl, mapboxgl-draw, mapbox-gl-geocoder css
-require('../node_modules/mapbox-gl/dist/mapbox-gl.css');
+// mapboxgl (MapLibre), mapboxgl-draw, mapbox-gl-geocoder css
+require('maplibre-gl/dist/maplibre-gl.css');
 require('../node_modules/@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css');
 require('../node_modules/@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css');
 

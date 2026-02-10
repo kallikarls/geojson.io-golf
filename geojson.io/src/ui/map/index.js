@@ -1,4 +1,4 @@
-const mapboxgl = require('mapbox-gl');
+const mapboxgl = require('maplibre-gl');
 
 require('qs-hash');
 const geojsonRewind = require('@mapbox/geojson-rewind');

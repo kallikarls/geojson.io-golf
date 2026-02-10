@@ -1,4 +1,4 @@
-const mapboxgl = require('mapbox-gl');
+const mapboxgl = require('maplibre-gl');
 const escape = require('escape-html');
 const length = require('@turf/length').default;
 const area = require('@turf/area').default;
@@ -432,11 +432,11 @@ function bindPopup(e, context, writable) {
     tabs +
     (writable
       ? '<div class="clearfix col12 pad1 keyline-top">' +
-        '<div class="pill col6">' +
-        '<button class="save col6 major" type="submit">Save</button>' +
-        '<button class="minor col6 cancel">Cancel</button>' +
-        '</div>' +
-        '<button class="col6 text-right pad0 delete-invert"><span class="fa-solid fa-trash"></span> Delete feature</button></div>'
+      '<div class="pill col6">' +
+      '<button class="save col6 major" type="submit">Save</button>' +
+      '<button class="minor col6 cancel">Cancel</button>' +
+      '</div>' +
+      '<button class="col6 text-right pad0 delete-invert"><span class="fa-solid fa-trash"></span> Delete feature</button></div>'
       : '') +
     '</form>';
 
