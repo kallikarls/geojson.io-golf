@@ -187,13 +187,15 @@ module.exports = function (context, readonly) {
 
       context.map.addControl(new BigIrrigationToolbar(), 'top-right'); // or 'bottom-right'
 
-      context.map.addControl(
-        new MapboxGeocoder({
-          accessToken: mapboxgl.accessToken,
-          mapboxgl,
-          marker: true
-        })
-      );
+      if (mapboxgl.accessToken) {
+        context.map.addControl(
+          new MapboxGeocoder({
+            accessToken: mapboxgl.accessToken,
+            mapboxgl,
+            marker: true
+          })
+        );
+      }
 
       context.Draw = new MapboxDraw({
         displayControlsDefault: false,
