@@ -251,6 +251,7 @@ module.exports = function (context, readonly) {
             on: 'click',
             action: () => {
               drawing = true;
+              context.map.getCanvas().style.cursor = 'crosshair';
               context.Draw.changeMode('draw_point');
             },
             classes: ['mapbox-gl-draw_ctrl-draw-btn', 'mapbox-gl-draw_point'],
@@ -260,6 +261,7 @@ module.exports = function (context, readonly) {
             on: 'click',
             action: () => {
               drawing = true;
+              context.map.getCanvas().style.cursor = 'crosshair';
               context.Draw.changeMode('draw_line_string');
             },
             classes: ['mapbox-gl-draw_ctrl-draw-btn', 'mapbox-gl-draw_line'],
@@ -269,6 +271,7 @@ module.exports = function (context, readonly) {
             on: 'click',
             action: () => {
               drawing = true;
+              context.map.getCanvas().style.cursor = 'crosshair';
               context.Draw.changeMode('draw_polygon');
             },
             classes: ['mapbox-gl-draw_ctrl-draw-btn', 'mapbox-gl-draw_polygon'],
@@ -278,6 +281,7 @@ module.exports = function (context, readonly) {
             on: 'click',
             action: () => {
               drawing = true;
+              context.map.getCanvas().style.cursor = 'crosshair';
               context.Draw.changeMode('draw_rectangle');
             },
             classes: [
@@ -290,6 +294,7 @@ module.exports = function (context, readonly) {
             on: 'click',
             action: () => {
               drawing = true;
+              context.map.getCanvas().style.cursor = 'crosshair';
               context.Draw.changeMode('draw_circle');
             },
             classes: ['mapbox-gl-draw_ctrl-draw-btn', 'mapbox-gl-draw_circle'],
@@ -623,6 +628,12 @@ module.exports = function (context, readonly) {
     });
 
     context.map.on('draw.create', created);
+    context.map.on('draw.modechange', (e) => {
+      if (e.mode === 'simple_select') {
+        context.map.getCanvas().style.cursor = ''; // Reset if mode changes back to select
+        drawing = false; // Ensure drawing state is cleared if cancelled
+      }
+    });
 
     function ensureEsriBase(map) {
       console.log("Loading ESRI map layer");
@@ -807,6 +818,7 @@ module.exports = function (context, readonly) {
       setTimeout(() => {
         drawing = false;
         pendingProps = null;   // <— reset so we don’t leak to the next draw
+        context.map.getCanvas().style.cursor = ''; // Reset cursor
       }, 500);
     }
 
