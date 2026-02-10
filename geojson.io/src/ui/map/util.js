@@ -484,19 +484,21 @@ function bindPopup(e, context, writable) {
     right: [-25, -20]
   };
 
-  new mapboxgl.Popup({
+  const p = new mapboxgl.Popup({
     closeButton: false,
     maxWidth: '251px',
     offset: popupOffsets,
     className: 'geojsonio-feature'
   })
     .setLngLat(e.lngLat)
-    .setHTML(content)
-    .on('open', (e) => {
-      // bind popup event listeners
-      popup(context)(e, feature.id);
-    })
-    .addTo(context.map);
+    .setHTML(content);
+
+  p.on('open', (e) => {
+    // bind popup event listeners
+    popup(context)(e, feature.id);
+  });
+
+  p.addTo(context.map);
 }
 
 module.exports = {
