@@ -150,6 +150,19 @@ const addMarkers = (geojson, context, writable) => {
       })
       .addTo(context.map);
 
+    // Explicitly handle clicks on the marker element (fixing ClickableMarker reliability)
+    marker.getElement().addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent map click
+      bindPopup(
+        {
+          lngLat: d.geometry.coordinates,
+          features: [d]
+        },
+        context,
+        writable
+      );
+    });
+
     marker.getElement().addEventListener('touchstart', () => {
       bindPopup(
         {
@@ -180,15 +193,24 @@ function geojsonToLayer(context, writable) {
   const workingDatasetSource = context.map.getSource('map-data');
 
   if (workingDatasetSource) {
-    const filteredFeatures = geojson.features.filter(
+    // Preserve original index as ID to ensure bindPopup lookup works correctly
+    const featuresWithIds = geojson.features.map((f, i) => ({ ...f, id: i }));
+
+    // Filter out features without geometry (e.g. null islands)
+    const filteredFeatures = featuresWithIds.filter(
       (feature) => feature.geometry
     );
+
     const filteredGeojson = {
       type: 'FeatureCollection',
       features: filteredFeatures
     };
-    workingDatasetSource.setData(addIds(filteredGeojson));
+
+    // Set data with preserved IDs (do NOT call addIds which resets them)
+    workingDatasetSource.setData(filteredGeojson);
+
     addMarkers(filteredGeojson, context, writable);
+
     if (context.data.get('recovery')) {
       zoomextent(context);
       context.data.set({
