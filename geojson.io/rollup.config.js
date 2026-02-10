@@ -28,7 +28,7 @@ export default {
       'require.main === module': 'false', // jsonhint export quirk
       // Replace hardcoded dev path with production path in ui/map/clickable_marker.js
       '../dist/icons': production ? '/icons' : '../dist/icons',
-      delimiters: ['', ''] 
+      delimiters: ['', '']
     }),
 
     resolve({
@@ -54,8 +54,8 @@ export default {
           dest: './dist',
           transform: (contents) => {
             return contents.toString()
-              .replace("href='dist/bundle.css'", "href='bundle.css'")
-              .replace('src="dist/bundle.js"', 'src="bundle.js"');
+              .replace("href='dist/bundle.css", "href='bundle.css")
+              .replace('src="dist/bundle.js', 'src="bundle.js');
           }
         },
         {
