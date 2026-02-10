@@ -121,9 +121,20 @@ module.exports = function (context, readonly) {
       const msg = (e.error?.message || e.error || '').toString();
       if (msg.includes('Unauthorized') || msg.includes('invalid Mapbox access token')) {
         console.warn('Mapbox authorization failed (401). Falling back to OpenStreetMap.');
+
+        // Clear token so further requests (glyphs/sprites) don't use it
+        mapboxgl.accessToken = '';
+
         const osmStyle = styles.find(s => s.title === 'OSM')?.style;
         if (osmStyle && context.map.getStyle()?.name !== 'osm') {
-          context.map.setStyle(osmStyle);
+          // Delay to let the map settle
+          setTimeout(() => {
+            try {
+              context.map.setStyle(osmStyle);
+            } catch (err) {
+              console.error('Failed to set fallback style:', err);
+            }
+          }, 500);
         }
       }
     });
