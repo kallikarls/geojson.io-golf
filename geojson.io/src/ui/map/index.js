@@ -116,6 +116,18 @@ module.exports = function (context, readonly) {
       hash: 'map'
     });
 
+    // Detect if Mapbox fails to authorize (401)
+    context.map.on('error', (e) => {
+      const msg = (e.error?.message || e.error || '').toString();
+      if (msg.includes('Unauthorized') || msg.includes('invalid Mapbox access token')) {
+        console.warn('Mapbox authorization failed (401). Falling back to OpenStreetMap.');
+        const osmStyle = styles.find(s => s.title === 'OSM')?.style;
+        if (osmStyle && context.map.getStyle()?.name !== 'osm') {
+          context.map.setStyle(osmStyle);
+        }
+      }
+    });
+
     if (writable) {
 
       // Large GPS toolbar control (sprinkler + pump)

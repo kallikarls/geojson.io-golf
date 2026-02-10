@@ -26,16 +26,9 @@
   <meta property="og:description" content="A quick, simple tool for creating, viewing, and sharing spatial data." />
   <meta property="og:image" content="/img/twitter-card-image.png" />
 
-  <meta http-equiv="Content-Security-Policy" content="
-    default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;
-    script-src * 'unsafe-inline' 'unsafe-eval' data: blob:;
-    connect-src * 'unsafe-inline' 'unsafe-eval' data: blob:;
-    img-src * data: blob:;
-    style-src * 'unsafe-inline';
-    frame-src *;
-    worker-src * blob:;
-    child-src * blob:;
-  ">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; script-src * 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src * 'unsafe-inline' 'unsafe-eval' data: blob:; img-src * data: blob:; style-src * 'unsafe-inline'; frame-src *; worker-src * blob:; child-src * blob:;">
+
   <!-- Add segment tracking for tool usage -->
   <script src="https://docs.mapbox.com/analytics.min.js"></script>
 
@@ -110,7 +103,6 @@
         max-width: 100% !important;
         height: 100vh !important;
         background: #eee;
-        /* Light gray background to confirm visibility */
       }
 
       .map.basis-0 {
@@ -187,9 +179,6 @@
 
         /* visual */
         background: #fff !important;
-        /* white background */
-        color: #000 !important;
-        /* black text */
         border-radius: 10px;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
         padding: 6px;
@@ -210,7 +199,6 @@
         border: none;
         border-radius: 8px;
         color: #000 !important;
-        /* ensure readable text */
         font-size: 14px;
         cursor: pointer;
       }
@@ -225,7 +213,6 @@
       position: absolute;
       left: 12px;
       z-index: 10020;
-      /* above header/menu */
       width: 56px;
       height: 56px;
       border-radius: 50%;
@@ -242,17 +229,13 @@
       user-select: none;
     }
 
-    /* Put the stack *below* the header (44px burger + 8px gap) */
     #fab-sprinkler {
       top: 56px;
     }
 
-    /* first button */
     #fab-pump {
       top: 124px;
     }
-
-    /* second button (56 + 12 gap) */
 
     .geo-fab span {
       color: #000;
@@ -263,7 +246,6 @@
       transform: scale(0.97);
     }
 
-    /* Optional: subtle success toast */
     .geo-toast {
       position: absolute;
       left: 50%;
@@ -282,55 +264,46 @@
       display: inline-block;
     }
 
-    /* Debug Console */
     #debug-console {
       position: fixed;
       bottom: 0;
       left: 0;
       right: 0;
       max-height: 50vh;
-      background: rgba(0, 0, 0, 0.9);
+      background: rgba(0, 0, 0, 0.95);
       color: #0f0;
       font-family: monospace;
-      font-size: 12px;
+      font-size: 11px;
       overflow-y: auto;
       z-index: 20000;
       padding: 10px;
       display: none;
       pointer-events: auto;
-      /* allow scrolling the log */
-      border-top: 2px solid #555;
+      border-top: 2px solid #333;
     }
   </style>
-
-
 </head>
 
 <body id="geojsonio-body" class="h-full hidden-by-guard">
   <div id="debug-console">
-    <div style="font-weight: bold; border-bottom: 1px solid #555; margin-bottom: 5px; padding-bottom: 5px;">DEBUG LOG
+    <div style="font-weight: bold; border-bottom: 1px solid #444; margin-bottom: 5px; padding-bottom: 5px;">DEBUG LOG
       (Android/PDA)</div>
   </div>
   <div class="geojsonio flex flex-col h-full">
     <div class="text-white bg-mb-gray-dark font-sans px-3 flex">
-      <div class="font-extrabold flex items-center tracking-wide text-base"> geojson.io
-      </div>
+      <div class="font-extrabold flex items-center tracking-wide text-base"> geojson.io </div>
       <div class="flex-grow flex justify-end">
         <div style="height: 42px"></div>
         <div class="flex items-center bg-pink" style="font-size: 10px">
           powered by
           <div class="pr-3">
-            <div class="bg-no-repeat bg-center ml-2" style="
-                  height: 18px;
-                  width: 76px;
-                  background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA3OTAgMTgwIj48cGF0aCBkPSJNODkuMSAxLjhDMzkuOSAxLjggMCA0MS43IDAgOTAuOSAwIDE0MC4xIDM5LjkgMTgwIDg5LjEgMTgwYzQ5LjIgMCA4OS4xLTM5LjkgODkuMS04OS4xIDAtNDkuMi0zOS45LTg5LjEtODkuMS04OS4xem00NTcuOCAxOS43Yy0sMS4yIDAtMi4yIDEtMi4yIDIuMnYxMDMuMmMwIDEuMiAxIDIuMiAyLjIgMi4yaDEzLjRjMS4yIDAgMi4yLTEgMi4yLTIuYXYtNy4xYzYuOSA3LjIgMTYu0IDExLjMgMjYuMyAxMS4zIDIwLjkgMCAzNy45LTE4IDM3LjktNDAuMyAwLTIyLjMtMTctNDAuMi0zNy45LTQwLjItMTAgMC0xOS41IDQuMS0yNi4zIDExLjNWMjMuN2MwLTEuMi0xLTIuMi0yLjItMi4yaC0xMy40ek05OC4zIDM2LjRjMTEuNC4zIDIyLjkgNC44IDMxLjcgMTMuNyAxNy43IDE3LjcgMTguMyA0NS43IDEuNCA2Mi43LTMwLjUgMzAuNS04NC44IDIwLjctODQuOCAyMC43cy05LjgtNTQuMyAyMC43LTg0LjhjOC41LTguNCAxOS43LTEyLjUgMzEtMTIuM3ptMTYwLjMgMTQuMmMtOC4yIDAtMTUuOSA0LTIwLjggMTAuNnYtNi40YzAtMS4yLTEtMi4yLTIuMi0yLjJoLTEzLjRjLTEuMiAwLTIuMiAxLTIuMiAyLjJWMTI3YzAgMS4yIDEgMi4yIDIuMiAyLjJoMTMuNGMxLjIgMCAyLjItMSAyLjItMi4yVjgzLjhjLjUtOS43IDcuMi0xNy4zIDE1LjQtMTcuMyA4LjUgMCAxNS42IDcuMSAxNS42IDE2LjV2NDRjMCAxLjIgMSAyLjIgMi4yIDIuMmgxMy41YzEuMiAwIDIuMi0xIDIuMi0yLjJsLS4xLTQ0LjljMS4yLTguOCA3LjYtMTUuNiAxNS4zLTE1LjYgOC41IDAgMTUuNiA3LjEgMTUuNiAxNi41djQ0YzAgMS4yIDEgMi4yIDIuMiAyLjJoMTMuNWMxLjIgMCAyLjItMSAyLjItMi4ybC0uMS00OS42Yy4zLTE0LjgtMTIuMy0yNi44LTI3LjktMjYuOC0xMCAuMS0xOS4yIDUuOS0yMy41IDE1LTUtOS4zLTE0LjctMTUuMS0yNS4zLTE1em0xMjcuOSAwYy0yMC45IDAtMzcuOSAxOC0zNy45IDQwLjMgMCAyMi4zIDE3IDQwLjMgMzcuOSA0MC4zIDEwIDAgMTkuNS00LjEgMjYuMy0xMS4zdjcuMWMwIDEuMiAxIDIuMiAyLjIgMi4yaDEzLjRjMS4yIDAgMi4yLTEgMi4yLTIuMlY1NC44Yy4xLTEuMi0uOS0yLjItMi4yLTIuMkg0MTVjLTEuMiAwLTIuMiAxLTIuMiAyLjJ2Ny4xYy02LjktNy4yLTE2LjQtMTEuMy0yNi4zLTExLjN6bTEwNi4xIDBjLTEwIDAtMTkuNS00LjEtMjYuMyAxMS4zdi03LjFjMC0xLjItMS0yLjItMi4yLTIuMmgtMTMuNGMtMS4yIDAtMi4yIDEtMi4yIDIuMlYxNThjMCAxLjIgMSAyLjIgMi4yIDIuMmgxMy40YzEuMiAwIDIuMi0xIDIuMi0yLjJ2LTM4LjJjNi45IDcuMiAxNi40IDExLjMgMjYuMyAxMS4zIDIwLjkgMCAzNy45LTE4IDM3LjktNDAuMyAwLTIyLjMtMTctNDAuMi0zNy45LTQwLjJ6bTE4NS41IDBjLTIyLjcgMC00MSAxOC00MSA0MC4zIDAgMjIuMyAxOC40IDQwLjMgNDEgNDAuM3M0MS0xOCA0MS00MC4zYzAtMjIuMy0xOC4zLTQwLjMtNDEtNDAuM3ptNDUuNCAyYy0xLjEgMC0yIC45LTIgMiAwIC40LjEuOC4zIDEuMWwyMyAzNS0yMy4zIDM1LjRjLS42LjktLjQgMi4yLjYgMi44LjMuMi43LjMgMS4xLjNoMTUuNWMxLjIgMCAyLjMtLjYgMi45LTEuNmwxMy44LTIzLjEgMTMuOCAyMy4xYy42IDEgMS43IDEuNiAyLjkgMS42aDE1LjVjMS4xIDAgMi0uOSAyLTIgMC0uNC0uMS0uNy0uMy0xLjFMNzY2IDkwLjdsMjMtMzVjLjYtLjkuNC0yLjItLjYtMi44LS4zLS4yLS43LS4zLTEuMS0uM2gtMTUuNWMtMS4yIDAtMi4zLjYtMi45IDEuNmwtMTMuNSAyMi43LTEzLjUtMjIuN2MtLjYtMS0xLjctMS42LTIuOS0xLjZoLTE1LjV6TTk5LjMgNTRsLTguNyAxOC0xNy45IDguNyAxNy45IDguNyA4LjcgMTggOC44LTE4IDE3LjktOC43LTE3LjktOC43LTguOC0xOHptMjkwLjMgMTIuN2MxMi43IDAgMjMgMTAuNyAyMy4yIDIzLjl2LjZjLS4xIDEzLjItMTAuNSAyMy45LTIzLjIgMjMuOS0xMi44IDAtMjMuMi0xMC44LTIzLjItMjQuMiAwLTEzLjQgMTAuNC0yNC4yIDIzLjItMjQuMnptOTkuOCAwYzEyLjggMCAyMy4yIDEwLjggMjMuMiAyNC4yIDAgMTMuNC0xMC40IDI0LjItMjMuMiAyNC4yLTEyLjcgMC0yMy0xMC43LTIzLjItMjMuOXYtLjZjLjItMTMuMiAxMC41LTIzLjkgMjMuMi0yMy45em05Ni4zIDBjMTIuOCAwIDIzLjIgMTAuOCAyMy4yIDI0LjIgMCAxMy40LTEwLjQgMjQuMi0yMy4yIDI0LjItMTIuNyAwLTIzLTEwLjctMjMuMi0yMy45di0uNmMuMi0xMy4yIDEwLjUtMjMuOSAyMy4yLTIzLjl6bTkyLjIgMGMxMi44IDAgMjMuMiAxMC44IDIzLjIgMjQuMiAwIDEzLjQtMTAuNCAyNC4yLTIzLjIgMjQuMi0xMi44IDAtMjMuMi0xMC44LTIzLjItMjQuMiAwLTEzLjQgMTAuNC0yNC4yIDIzLjItMjQuMnoiIGZpbGw9IiNmZmYiLz48L3N2Zz4=);
-                "></div>
+            <div class="bg-no-repeat bg-center ml-2"
+              style="height: 18px; width: 76px; background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA3OTAgMTgwIj48cGF0aCBkPSJNODkuMSAxLjhDMzkuOSAxLjggMCA0MS43IDAgOTAuOSAwIDE0MC4xIDM5LjkgMTgwIDg5LjEgMTgwYzQ5LjIgMCA4OS4xLTM5LjkgODkuMS04OS4xIDAtNDkuMi0zOS45LTg5LjEtODkuMS04OS4xem00NTcuOCAxOS43Yy0xLjIgMC0yLjIgMS0yLjIgMi4ydjEwMy4yYzAgMS4yIDEgMi4yIDIuMiAyLjJoMTMuNGMxLjIgMCAyLjItMSAyLjItMi4ydi03LjFjNi45IDcuMiAxNi40IDExLjMgMjYuMyAxMS4zIDIwLjkgMCAzNy45LTE4IDM3LjktNDAuMyAwLTIyLjMtMTctNDAuMi0zNy45LTQwLjItMTAgMC0xOS41IDQuMS0yNi4zIDExLjNWMjMuN2MwLTEuMi0xLTIuMi0yLjItMi4yaC0xMy40ek05OC4zIDM2LjRjMTEuNC4zIDIyLjkgNC44IDMxLjcgMTMuNyAxNy43IDE3LjcgMTguMyA0NS43IDEuNCA2Mi43LTMwLjUgMzAuNS04NC44IDIwLjctODQuOCAyMC43cy05LjgtNTQuMyAyMC43LTg0LjhjOC41LTguNCAxOS43LTEyLjUgMzEtMTIuM3ptMTYwLjMgMTQuMmMtOC4yIDAtMTUuOSA0LTIwLjggMTAuNnYtNi40YzAtMS4yLTEtMi4yLTIuMi0yLjJoLTEzLjRjLTEuMiAwLTIuMiAxLTIuMiAyLjJWMTI3YzAgMS4yIDEgMi4yIDIuMiAyLjJoMTMuNGMxLjIgMCAyLjItMSAyLjItMi4yVjgzLjhjLjUtOS43IDcuMi0xNy4zIDE1LjQtMTcuMyA4LjUgMCAxNS42IDcuMSAxNS42IDE2LjV2NDRjMCAxLjIgMSAyLjIgMi4yIDIuMmgxMy41YzEuMiAwIDIuMi0xIDIuMi0yLjJsLS4xLTQ0LjljMS4yLTguOCA3LjYtMTUuNiAxNS4zLTE1LjYgOC41IDAgMTUuNiA3LjEgMTUuNiAxNi41djQ0YzAgMS4yIDEgMi4yIDIuMiAyLjJoMTMuNWMxLjIgMCAyLjItMSAyLjItMi4ybC0uMS00OS42Yy4zLTE0LjgtMTIuMy0yNi44LTI3LjktMjYuOC0xMCAuMS0xOS4yIDUuOS0yMy41IDE1LTUtOS4zLTE0LjctMTUuMS0yNS4zLTE1em0xMjcuOSAwYy0yMC45IDAtMzcuOSAxOC0zNy45IDQwLjMgMCAyMi4zIDE3NDAuMyAzNy45IDQwLjMgMTAgMCAxOS41LTQuMSAyNi4zLTExLjN2Ny4xYzAgMS4yIDEgMi4yIDIuMiAyLjJoMTMuNGMxLjIgMCAyLjItMSAyLjItMi4yVjU0LjhjLjEtMS4yLS45LTIuMi0yLjItMi4ySDQxNWMtMS4yIDAtMi4yIDEtMi4yIDIuMnY3LjFjLTYuOS03LjItMTYuNC0xMS4zLTI2LjMtMTEuM3ptMTA2LjEgMGMtMTAgMC0xOS41IDQuMS0yNi4zIDExLjN2LTcuMWMwIDEuMiAxIDIuMiAyLjIgMi4yaDEzLjRjMS4yIDAtMi4yIDEtMi4yIDIuMlYxNThjMCAxLjIgMSAyLjIgMi4yIDIuMmgxMy40YzEuMiAwIDIuMi0xIDIuMi0yLjJ2LTM4LjJjNi45IDcuMiAxNi40IDExLjMgMjYuMyAxMS4zIDIwLjkgMCAzNy45LTE4IDM3LjktNDAuMyAwLTIyLjMtMTctNDAuMi0zNy45LTQwLjJ6bTE4NS41IDBjLTIyLjcgMC00MSAxOC00MSA0MC4zIDAgMjIuMyAxOC40IDQwLjMgNDEgNDAuM3M0MS0xOCA0MS00MC4zYzAtMjIuMy0xOC4zLTQwLjMtNDEtNDAuM3ptNDUuNCAyYy0xLjEgMC0yIC45LTIgMiAwIC40LjEuOC4zIDEuMWwyMyAzNS0yMy4zIDM1LjRjLS42LjktLjQgMi4yLjYgMi44LjMuMi43LjMgMS4xLjNoMTUuNWMxLjIgMCAyLjMtLjYgMi45LTEuNmwxMy44LTIzLjEgMTMuOCAyMy4xYy42IDEgMS43IDEuNiAyLjkgMS42aDE1LjVjMS4xIDAgMi0uOSAyLTIgMC0uNC0uMS0uNy0uMy0xLjFMNzY2IDkwLjdsMjMtMzVjLjYtLjkuNC0yLjItLjYtMi44LS4zLS4yLS43LS4zLTEuMS0uM2gtMTUuNWMtMS4yIDAtMi4zLjYtMi45IDEuNmwtMTMuNSAyMi43LTEzLjUtMjIuN2MtLjYtMS0xLjctMS42LTIuOS0xLjZoLTE1LjV6TTk5LjMgNTRsLTguNyAxOC0xNy45IDguNyAxNy45IDguNyA4LjcgMTggOC44LTE4IDE3LjktOC43LTE3LjktOC43LTguOC0xOHptMjkwLjMgMTIuN2MxMi43IDAgMjMgMTAuNyAyMy4yIDIzLjl2LjZjLS4xIDEzLjItMTAuNSAyMy45LTIzLjIgMjMuOS0xMi44IDAtMjMuMi0xMC44LTIzLjItMjQuMiAwLTEzLjQgMTAuNC0yNC4yIDIzLjItMjQuMnptOTkuOCAwYzEyLjggMCAyMy4yIDEwLjggMjMuMiAyNC4yIDAgMTMuNC0xMC40IDI0LjItMjMuMiAyNC4yLTEyLjcgMC0yMy0xMC43LTIzLjItMjMuOXYtLjZjLjItMTMuMiAxMC41LTIzLjkgMjMuMi0yMy45em05Ni4zIDBjMTIuOCAwIDIzLjIgMTAuOCAyMy4yIDI0LjIgMCAxMy40LTEwLjQgMjQuMi0yMy4yIDI0LjItMTIuNyAwLTIzLTEwLjctMjMuMi0yMy45di0uNmMuMi0xMy4yIDEwLjUtMjMuOSAyMy4yLTIzLjl6bTkyLjIgMGMxMi44IDAgMjMuMiAxMC44IDIzLjIgMjQuMiAwIDEzLjQtMTAuNCAyNC4yLTIzLjIgMjQuMi0xMi44IDAtMjMuMi0xMC44LTIzLjItMjQuMiAwLTEzLjQgMTAuNC0yNC4yIDIzLjItMjQuMnoiIGZpbGw9IiNmZmYiLz48L3N2Zz4=);">
+            </div>
           </div>
           <div class="hidden md:flex pl-3 border-l border-solid border-gray-700 h-full  items-center">
             <a class="bg-mb-purple-500 hover:bg-mb-purple-700 hover:text-white text-white text-xs font-bold py-1 px-4 rounded transition-all duration-200"
-              href="https://account.mapbox.com/auth/signup/">
-              Sign up for Mapbox
-            </a>
+              href="https://account.mapbox.com/auth/signup/"> Sign up for Mapbox </a>
           </div>
         </div>
       </div>
@@ -348,16 +321,6 @@
   <script src="dist/bundle.js"></script>
 
   <script>
-    window.addEventListener('load', function () {
-      if (window.innerWidth <= 900) {
-        setTimeout(() => {
-          if (window.context?.map?.resize) window.context.map.resize();
-        }, 200);
-      }
-    });
-  </script>
-
-  <script>
     (function () {
       const isMobile = window.matchMedia('(max-width: 900px)').matches;
 
@@ -373,85 +336,41 @@
 
       function buildMobileMenu() {
         if (!isMobile) return;
-
-        const anchor =
-          document.querySelector('.geojsonio .text-white.bg-mb-gray-dark.font-sans.px-3.flex') ||
-          document.querySelector('.topbar, header') ||
-          document.body;
-
+        const anchor = document.querySelector('.geojsonio .text-white.bg-mb-gray-dark.font-sans.px-3.flex') || document.body;
         const btn = document.createElement('button');
-        btn.className = 'mobile-menu-btn';
-        btn.setAttribute('aria-label', 'Menu');
-        btn.textContent = '☰';
-
+        btn.className = 'mobile-menu-btn'; btn.textContent = '☰';
         const menu = document.createElement('div');
         menu.className = 'mobile-menu';
         ['Open', 'Save', 'New'].forEach(name => {
           const b = document.createElement('button');
-          b.dataset.action = name;
-          b.textContent = name;
+          b.dataset.action = name; b.textContent = name;
           menu.appendChild(b);
         });
-
-        btn.addEventListener('click', e => {
-          e.stopPropagation();
-          menu.classList.toggle('open');
-        });
+        btn.addEventListener('click', e => { e.stopPropagation(); menu.classList.toggle('open'); });
         document.addEventListener('click', () => menu.classList.remove('open'));
-
-        // ✅ NEW: special-case "Save" to call the original downloadGeoJSON
         menu.addEventListener('click', e => {
-          const b = e.target.closest('button[data-action]');
-          if (!b) return;
-
-          const action = (b.dataset.action || '').toLowerCase();
+          const b = e.target.closest('button[data-action]'); if (!b) return;
+          const action = b.dataset.action.toLowerCase();
           if (action === 'save') {
-            e.preventDefault();
-            e.stopPropagation();
-
-            // Prefer the original function exposed from fileBar.js
             const fn = window.context?.actions?.downloadGeoJSON;
-            if (typeof fn === 'function') {
-              fn();
-            } else {
-              // Fallback: click the "GeoJSON" submenu entry in the hidden file-bar
-              const geoBtn = [...document.querySelectorAll('.file-bar .children a')]
-                .find(el => (el.textContent || '').trim().toLowerCase() === 'geojson');
-              if (geoBtn) {
-                geoBtn.click();
-              } else {
-                console.warn('GeoJSON export not found; ensure fileBar is initialized.');
-              }
+            if (fn) fn(); else {
+              const geoBtn = [...document.querySelectorAll('.file-bar .children a')].find(el => el.textContent.toLowerCase().trim() === 'geojson');
+              if (geoBtn) geoBtn.click();
             }
-
-            // close menu + light haptic
-            menu.classList.remove('open');
-            if (navigator.vibrate) navigator.vibrate(20);
-            return;
+            menu.classList.remove('open'); return;
           }
-
-          // Default: forward Open/New to the real file-bar items by label
-          const targetLabel = action;
-          const real = [...document.querySelectorAll('.file-bar a, .file-bar button')]
-            .find(el => (el.textContent || '').trim().toLowerCase() === targetLabel);
+          const real = [...document.querySelectorAll('.file-bar a, .file-bar button')].find(el => el.textContent.toLowerCase().trim() === action);
           if (real) real.click();
-          else console.warn('file-bar button not found:', targetLabel);
           menu.classList.remove('open');
         });
-
-        anchor.appendChild(btn);
-        anchor.appendChild(menu);
+        anchor.appendChild(btn); anchor.appendChild(menu);
       }
 
       window.addEventListener('load', function () {
-        cleanFileBar();
-        buildMobileMenu();
+        cleanFileBar(); buildMobileMenu();
+        if (isMobile && window.context?.map?.resize) setTimeout(() => window.context.map.resize(), 500);
 
-        if (isMobile && window.context?.map?.resize) {
-          setTimeout(() => window.context.map.resize(), 200);
-        }
-
-        if (window.location.search.indexOf('debug=1') !== -1 || window.location.hash.indexOf('debug=1') !== -1) {
+        if (window.location.search.includes('debug=1') || window.location.hash.includes('debug=1')) {
           const consoleDiv = document.getElementById('debug-console');
           consoleDiv.style.display = 'block';
           const log = (msg, color) => {
@@ -459,59 +378,21 @@
             div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
             if (color) div.style.color = color;
             consoleDiv.appendChild(div);
-            // Limit number of children to avoid performance hit
             if (consoleDiv.childNodes.length > 100) consoleDiv.removeChild(consoleDiv.childNodes[1]);
             consoleDiv.scrollTop = consoleDiv.scrollHeight;
           };
 
           log('Debug mode active');
-          log('User Agent: ' + navigator.userAgent);
-          log('Screen size: ' + window.innerWidth + 'x' + window.innerHeight);
-
-          window.onerror = (msg, url, line) => {
-            log(`GLOBAL ERR: ${msg} (${url}:${line})`, '#ff5555');
-            return false;
-          };
-
-          window.onunhandledrejection = (event) => {
-            log(`PROMISE REJ: ${event.reason}`, '#ff5555');
-          };
-
-          const oldLog = console.log;
-          console.log = (...args) => {
-            oldLog(...args);
-            log(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '));
-          };
-
-          const oldWarn = console.warn;
-          console.warn = (...args) => {
-            oldWarn(...args);
-            log('WARN: ' + args.join(' '), '#ffff55');
-          };
-
-          const oldErr = console.error;
-          console.error = (...args) => {
-            oldErr(...args);
-            log('ERROR: ' + args.join(' '), '#ff5555');
-          };
-
-          // Periodically check if map container has size
-          setInterval(() => {
-            const m = document.getElementById('map');
-            if (m) {
-              const r = m.getBoundingClientRect();
-              if (r.width === 0 || r.height === 0) {
-                log(`MAP SIZE WARNING: ${r.width}x${r.height}`, 'orange');
-              }
-            } else {
-              log('MAP CONTAINER NOT FOUND', 'orange');
-            }
-          }, 3000);
+          log('UA: ' + navigator.userAgent);
+          window.onerror = (msg, url, line) => { log(`ERR: ${msg} (${line})`, '#ff5555'); return false; };
+          const oldLog = console.log, oldWarn = console.warn, oldErr = console.error;
+          console.log = (...args) => { oldLog(...args); log(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' ')); };
+          console.warn = (...args) => { oldWarn(...args); log('WARN: ' + args.join(' '), '#ffff55'); };
+          console.error = (...args) => { oldErr(...args); log('ERROR: ' + args.join(' '), '#ff5555'); };
         }
       });
     })();
   </script>
-
 </body>
 
 </html>
