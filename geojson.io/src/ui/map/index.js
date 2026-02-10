@@ -197,6 +197,21 @@ module.exports = function (context, readonly) {
         );
       }
 
+      // Filter draw styles to remove text-field and text-font if we are in OSM mode (no token)
+      // This prevents the "glyphs" error crash
+      const sanitizedDrawStyles = drawStyles.map(style => {
+        if (style.layout && (style.layout['text-field'] || style.layout['text-font'])) {
+          if (!mapboxgl.accessToken) {
+            // Create a deep copy to avoid mutating the original export if it's cached
+            const safeStyle = JSON.parse(JSON.stringify(style));
+            delete safeStyle.layout['text-field'];
+            delete safeStyle.layout['text-font'];
+            return safeStyle;
+          }
+        }
+        return style;
+      });
+
       context.Draw = new MapboxDraw({
         displayControlsDefault: false,
         modes: {
@@ -209,7 +224,7 @@ module.exports = function (context, readonly) {
           draw_green: DrawGreen
         },
         controls: {},
-        styles: drawStyles
+        styles: sanitizedDrawStyles
       });
 
       // ✅ make it visible to the outside world (same object)
