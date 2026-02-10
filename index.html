@@ -27,45 +27,14 @@
   <meta property="og:image" content="/img/twitter-card-image.png" />
 
   <meta http-equiv="Content-Security-Policy" content="
-    default-src
-      'self'
-      ;
-    child-src
-      'self'
-      blob:
-      ;
-    connect-src
-      'self'
-      *
-      ;
-    font-src
-      https://fonts.gstatic.com/
-      'self'
-      ;
-    frame-src
-      'self'
-      ;
-    img-src
-      'self'
-      data:
-      *
-      ;
-    script-src
-      'self'
-      'unsafe-eval'
-      'unsafe-inline'
-      https://cdn.segment.com
-      https://assets.customer.io
-      https://secure.gaug.es
-      https://www.google-analytics.com
-      https://www.googletagmanager.com/gtag/js
-      https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.js
-      https://docs.mapbox.com
-      ;
-    style-src
-      'self'
-      'unsafe-inline'
-      ;
+    default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;
+    script-src * 'unsafe-inline' 'unsafe-eval' data: blob:;
+    connect-src * 'unsafe-inline' 'unsafe-eval' data: blob:;
+    img-src * data: blob:;
+    style-src * 'unsafe-inline';
+    frame-src *;
+    worker-src * blob:;
+    child-src * blob:;
   ">
   <!-- Add segment tracking for tool usage -->
   <script src="https://docs.mapbox.com/analytics.min.js"></script>
@@ -74,167 +43,277 @@
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-3K6EEFGNP0"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
+    function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
 
     gtag('config', 'G-3K6EEFGNP0');
   </script>
 
-<style>
-  /* framebust guard */
-  body { display: none; }
+  <style>
+    /* framebust guard: initially hidden by JS, shown if top == self */
+    .hidden-by-guard {
+      display: none !important;
+    }
 
-  /* Desktop/large only: show the file-bar */
-  @media (min-width: 901px) {
-    .file-bar { display: flex !important; }
-  }
+    /* Desktop/large only: show the file-bar */
+    @media (min-width: 901px) {
+      .file-bar {
+        display: flex !important;
+      }
+    }
 
-  /* MOBILE / PDA */
-  @media (max-width: 900px) {
+    /* MOBILE / PDA */
+    @media (max-width: 900px) {
 
-    /* Move the geojson.io title to the right so it doesn't sit behind the hamburger */
-    .topbar .branding,
-    .topbar h1,
-    .topbar .site-title,
-    header .branding,
-    header h1,
-    header .site-title {
-      margin-left: 44px !important;  /* same space as the hamburger + gap */
+      /* Move the geojson.io title to the right so it doesn't sit behind the hamburger */
+      .topbar .branding,
+      .topbar h1,
+      .topbar .site-title,
+      header .branding,
+      header h1,
+      header .site-title {
+        margin-left: 44px !important;
+        /* same space as the hamburger + gap */
+        display: inline-block;
+      }
+
+      /* Hide layer + projection switches */
+      .layer-switch,
+      .projection-switch {
+        display: none !important;
+      }
+
+      /* Optional: hide bottom-left wrapper */
+      .mapboxgl-ctrl-bottom-left {
+        display: none !important;
+      }
+
+      /* Hide the editor sidebar (your actual class combo) */
+      .right.flex.flex-col.bg-white.relative,
+      [class~="right"][class~="flex-col"][class~="bg-white"][class~="relative"] {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        max-width: 0 !important;
+        max-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+      }
+
+      /* Fill screen with the map; neutralize basis-0 */
+      .map {
+        display: block !important;
+        flex: 1 1 auto !important;
+        flex-basis: 100% !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 100vh !important;
+        background: #eee;
+        /* Light gray background to confirm visibility */
+      }
+
+      .map.basis-0 {
+        flex-basis: 100% !important;
+      }
+
+      /* Fullscreen page, no scrollbars */
+      html,
+      body {
+        height: 100%;
+        overflow: hidden;
+        margin: 0;
+      }
+
+      /* KEEP the top bar visible on mobile and reserve space for burger */
+      .topbar,
+      header {
+        position: relative !important;
+        padding-left: 44px !important;
+        /* 36px button + 8px gap */
+        z-index: 10005;
+      }
+
+      /* Hide original file-bar on mobile (menu replaces it) */
+      .topbar .file-bar,
+      header .file-bar,
+      .file-bar {
+        display: none !important;
+      }
+
+      /* Search (Mapbox geocoder / custom) — hide on mobile */
+      .mapboxgl-ctrl-geocoder,
+      #search,
+      .search,
+      input[type="search"] {
+        display: none !important;
+      }
+
+      /* Reserve space for the hamburger inside the actual header row */
+      .geojsonio .text-white.bg-mb-gray-dark.font-sans.px-3.flex,
+      .geojsonio .px-3.flex {
+        padding-left: 44px !important;
+        /* 36px button + 8px gap */
+      }
+
+      /* Hamburger button (inside top bar) */
+      .mobile-menu-btn {
+        position: absolute !important;
+        top: 6px !important;
+        left: 6px !important;
+        z-index: 10010 !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        color: #000 !important;
+        /* black icon/text */
+        border: none;
+        border-radius: 8px;
+        background: #fff;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, .15);
+        font-size: 20px;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      /* Mobile dropdown styling fix */
+      .mobile-menu {
+        position: absolute !important;
+        top: 44px !important;
+        left: 6px !important;
+        z-index: 10010 !important;
+
+        /* visual */
+        background: #fff !important;
+        /* white background */
+        color: #000 !important;
+        /* black text */
+        border-radius: 10px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
+        padding: 6px;
+        min-width: 160px;
+        display: none;
+        font-family: system-ui, sans-serif;
+      }
+
+      .mobile-menu.open {
+        display: block;
+      }
+
+      .mobile-menu button {
+        width: 100%;
+        padding: 10px 12px;
+        text-align: left;
+        background: transparent;
+        border: none;
+        border-radius: 8px;
+        color: #000 !important;
+        /* ensure readable text */
+        font-size: 14px;
+        cursor: pointer;
+      }
+
+      .mobile-menu button:hover {
+        background: rgba(0, 0, 0, .06);
+      }
+    }
+
+    /* Floating action buttons — top-left stack */
+    .geo-fab {
+      position: absolute;
+      left: 12px;
+      z-index: 10020;
+      /* above header/menu */
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      line-height: 1.1;
+      text-align: center;
+      background: #fff;
+      border: none;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, .22);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* Put the stack *below* the header (44px burger + 8px gap) */
+    #fab-sprinkler {
+      top: 56px;
+    }
+
+    /* first button */
+    #fab-pump {
+      top: 124px;
+    }
+
+    /* second button (56 + 12 gap) */
+
+    .geo-fab span {
+      color: #000;
+      padding: 0 6px;
+    }
+
+    .geo-fab:active {
+      transform: scale(0.97);
+    }
+
+    /* Optional: subtle success toast */
+    .geo-toast {
+      position: absolute;
+      left: 50%;
+      bottom: 150px;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, .85);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      z-index: 10030;
+      display: none;
+    }
+
+    .geo-toast.show {
       display: inline-block;
     }
 
-    /* Hide layer + projection switches */
-    .layer-switch, .projection-switch { display: none !important; }
-
-    /* Optional: hide bottom-left wrapper */
-    .mapboxgl-ctrl-bottom-left { display: none !important; }
-
-    /* Hide the editor sidebar (your actual class combo) */
-    .right.flex.flex-col.bg-white.relative,
-    [class~="right"][class~="flex-col"][class~="bg-white"][class~="relative"] {
-      display: none !important;
-      width: 0 !important; height: 0 !important;
-      max-width: 0 !important; max-height: 0 !important;
-      padding: 0 !important; margin: 0 !important;
-      overflow: hidden !important;
-    }
-
-    /* Fill screen with the map; neutralize basis-0 */
-    .map {
-      display: block !important;
-      flex: 1 1 auto !important;
-      flex-basis: 100% !important;
-      width: 100% !important; max-width: 100% !important;
-      height: 100vh !important;
-    }
-    .map.basis-0 { flex-basis: 100% !important; }
-
-    /* Fullscreen page, no scrollbars */
-    html, body { height: 100%; overflow: hidden; margin: 0; }
-
-    /* KEEP the top bar visible on mobile and reserve space for burger */
-    .topbar, header {
-      position: relative !important;
-      padding-left: 44px !important;   /* 36px button + 8px gap */
-      z-index: 10005;
-    }
-
-    /* Hide original file-bar on mobile (menu replaces it) */
-    .topbar .file-bar, header .file-bar, .file-bar {
-      display: none !important;
-    }
-
-    /* Search (Mapbox geocoder / custom) — hide on mobile */
-    .mapboxgl-ctrl-geocoder, #search, .search, input[type="search"] {
-      display: none !important;
-    }
-
-    /* Reserve space for the hamburger inside the actual header row */
-    .geojsonio .text-white.bg-mb-gray-dark.font-sans.px-3.flex,
-    .geojsonio .px-3.flex {
-      padding-left: 44px !important; /* 36px button + 8px gap */
-    }
-
-    /* Hamburger button (inside top bar) */
-    .mobile-menu-btn {
-      position: absolute !important;
-      top: 6px !important; left: 6px !important;
-      z-index: 10010 !important;
-      display: flex; align-items: center; justify-content: center;
-      width: 36px; height: 36px;
-      color: #000 !important;      /* black icon/text */
-      border: none; border-radius: 8px;
-      background: #fff;
-      box-shadow: 0 2px 10px rgba(0,0,0,.15);
-      font-size: 20px; line-height: 1; cursor: pointer;
-    }
-
-    /* Mobile dropdown styling fix */
-    .mobile-menu {
-      position: absolute !important;
-      top: 44px !important;
-      left: 6px !important;
-      z-index: 10010 !important;
-
-      /* visual */
-      background: #fff !important;        /* white background */
-      color: #000 !important;             /* black text */
-      border-radius: 10px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
-      padding: 6px;
-      min-width: 160px;
+    /* Debug Console */
+    #debug-console {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-height: 50vh;
+      background: rgba(0, 0, 0, 0.9);
+      color: #0f0;
+      font-family: monospace;
+      font-size: 12px;
+      overflow-y: auto;
+      z-index: 20000;
+      padding: 10px;
       display: none;
-      font-family: system-ui, sans-serif;
+      pointer-events: auto;
+      /* allow scrolling the log */
+      border-top: 2px solid #555;
     }
-
-    .mobile-menu.open { display: block; }
-
-    .mobile-menu button {
-      width: 100%; padding: 10px 12px; text-align: left;
-      background: transparent; border: none; border-radius: 8px;
-      color: #000 !important;             /* ensure readable text */
-      font-size: 14px; cursor: pointer;
-    }
-    .mobile-menu button:hover { background: rgba(0,0,0,.06); }
-  }
-
-  /* Floating action buttons — top-left stack */
-  .geo-fab {
-    position: absolute;
-    left: 12px;
-    z-index: 10020;                 /* above header/menu */
-    width: 56px; height: 56px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px; line-height: 1.1; text-align: center;
-    background: #fff; border: none;
-    box-shadow: 0 6px 18px rgba(0,0,0,.22);
-    cursor: pointer; user-select: none;
-  }
-
-  /* Put the stack *below* the header (44px burger + 8px gap) */
-  #fab-sprinkler { top: 56px; }     /* first button */
-  #fab-pump      { top: 124px; }    /* second button (56 + 12 gap) */
-
-  .geo-fab span { color: #000; padding: 0 6px; }
-  .geo-fab:active { transform: scale(0.97); }
-
-  /* Optional: subtle success toast */
-  .geo-toast {
-    position: absolute; left: 50%; bottom: 150px; transform: translateX(-50%);
-    background: rgba(0,0,0,.85); color: #fff; padding: 8px 12px; border-radius: 8px;
-    font-size: 13px; z-index: 10030; display: none;
-  }
-  .geo-toast.show { display: inline-block; }
-</style>
+  </style>
 
 
 </head>
 
-<body id="geojsonio-body" class="h-full">
+<body id="geojsonio-body" class="h-full hidden-by-guard">
+  <div id="debug-console">
+    <div style="font-weight: bold; border-bottom: 1px solid #555; margin-bottom: 5px; padding-bottom: 5px;">DEBUG LOG
+      (Android/PDA)</div>
+  </div>
   <div class="geojsonio flex flex-col h-full">
     <div class="text-white bg-mb-gray-dark font-sans px-3 flex">
-      <div class="font-extrabold flex items-center tracking-wide text-base">        geojson.io
+      <div class="font-extrabold flex items-center tracking-wide text-base"> geojson.io
       </div>
       <div class="flex-grow flex justify-end">
         <div style="height: 42px"></div>
@@ -244,7 +323,7 @@
             <div class="bg-no-repeat bg-center ml-2" style="
                   height: 18px;
                   width: 76px;
-                  background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA3OTAgMTgwIj48cGF0aCBkPSJNODkuMSAxLjhDMzkuOSAxLjggMCA0MS43IDAgOTAuOSAwIDE0MC4xIDM5LjkgMTgwIDg5LjEgMTgwYzQ5LjIgMCA4OS4xLTM5LjkgODkuMS04OS4xIDAtNDkuMi0zOS45LTg5LjEtODkuMS04OS4xem00NTcuOCAxOS43Yy0xLjIgMC0yLjIgMS0yLjIgMi4ydjEwMy4yYzAgMS4yIDEgMi4yIDIuMiAyLjJoMTMuNGMxLjIgMCAyLjItMSAyLjItMi4ydi03LjFjNi45IDcuMiAxNi40IDExLjMgMjYuMyAxMS4zIDIwLjkgMCAzNy45LTE4IDM3LjktNDAuMyAwLTIyLjMtMTctNDAuMi0zNy45LTQwLjItMTAgMC0xOS41IDQuMS0yNi4zIDExLjNWMjMuN2MwLTEuMi0xLTIuMi0yLjItMi4yaC0xMy40ek05OC4zIDM2LjRjMTEuNC4zIDIyLjkgNC44IDMxLjcgMTMuNyAxNy43IDE3LjcgMTguMyA0NS43IDEuNCA2Mi43LTMwLjUgMzAuNS04NC44IDIwLjctODQuOCAyMC43cy05LjgtNTQuMyAyMC43LTg0LjhjOC41LTguNCAxOS43LTEyLjUgMzEtMTIuM3ptMTYwLjMgMTQuMmMtOC4yIDAtMTUuOSA0LTIwLjggMTAuNnYtNi40YzAtMS4yLTEtMi4yLTIuMi0yLjJoLTEzLjRjLTEuMiAwLTIuMiAxLTIuMiAyLjJWMTI3YzAgMS4yIDEgMi4yIDIuMiAyLjJoMTMuNGMxLjIgMCAyLjItMSAyLjItMi4yVjgzLjhjLjUtOS43IDcuMi0xNy4zIDE1LjQtMTcuMyA4LjUgMCAxNS42IDcuMSAxNS42IDE2LjV2NDRjMCAxLjIgMSAyLjIgMi4yIDIuMmgxMy41YzEuMiAwIDIuMi0xIDIuMi0yLjJsLS4xLTQ0LjljMS4yLTguOCA3LjYtMTUuNiAxNS4zLTE1LjYgOC41IDAgMTUuNiA3LjEgMTUuNiAxNi41djQ0YzAgMS4yIDEgMi4yIDIuMiAyLjJoMTMuNWMxLjIgMCAyLjItMSAyLjItMi4ybC0uMS00OS42Yy4zLTE0LjgtMTIuMy0yNi44LTI3LjktMjYuOC0xMCAuMS0xOS4yIDUuOS0yMy41IDE1LTUtOS4zLTE0LjctMTUuMS0yNS4zLTE1em0xMjcuOSAwYy0yMC45IDAtMzcuOSAxOC0zNy45IDQwLjMgMCAyMi4zIDE3IDQwLjMgMzcuOSA0MC4zIDEwIDAgMTkuNS00LjEgMjYuMy0xMS4zdjcuMWMwIDEuMiAxIDIuMiAyLjIgMi4yaDEzLjRjMS4yIDAgMi4yLTEgMi4yLTIuMlY1NC44Yy4xLTEuMi0uOS0yLjItMi4yLTIuMkg0MTVjLTEuMiAwLTIuMiAxLTIuMiAyLjJ2Ny4xYy02LjktNy4yLTE2LjQtMTEuMy0yNi4zLTExLjN6bTEwNi4xIDBjLTEwIDAtMTkuNSA0LjEtMjYuMyAxMS4zdi03LjFjMC0xLjItMS0yLjItMi4yLTIuMmgtMTMuNGMtMS4yIDAtMi4yIDEtMi4yIDIuMlYxNThjMCAxLjIgMSAyLjIgMi4yIDIuMmgxMy40YzEuMiAwIDIuMi0xIDIuMi0yLjJ2LTM4LjJjNi45IDcuMiAxNi40IDExLjMgMjYuMyAxMS4zIDIwLjkgMCAzNy45LTE4IDM3LjktNDAuMyAwLTIyLjMtMTctNDAuMi0zNy45LTQwLjJ6bTE4NS41IDBjLTIyLjcgMC00MSAxOC00MSA0MC4zIDAgMjIuMyAxOC40IDQwLjMgNDEgNDAuM3M0MS0xOCA0MS00MC4zYzAtMjIuMy0xOC4zLTQwLjMtNDEtNDAuM3ptNDUuNCAyYy0xLjEgMC0yIC45LTIgMiAwIC40LjEuOC4zIDEuMWwyMyAzNS0yMy4zIDM1LjRjLS42LjktLjQgMi4yLjYgMi44LjMuMi43LjMgMS4xLjNoMTUuNWMxLjIgMCAyLjMtLjYgMi45LTEuNmwxMy44LTIzLjEgMTMuOCAyMy4xYy42IDEgMS43IDEuNiAyLjkgMS42aDE1LjVjMS4xIDAgMi0uOSAyLTIgMC0uNC0uMS0uNy0uMy0xLjFMNzY2IDkwLjdsMjMtMzVjLjYtLjkuNC0yLjItLjYtMi44LS4zLS4yLS43LS4zLTEuMS0uM2gtMTUuNWMtMS4yIDAtMi4zLjYtMi45IDEuNmwtMTMuNSAyMi43LTEzLjUtMjIuN2MtLjYtMS0xLjctMS42LTIuOS0xLjZoLTE1LjV6TTk5LjMgNTRsLTguNyAxOC0xNy45IDguNyAxNy45IDguNyA4LjcgMTggOC44LTE4IDE3LjktOC43LTE3LjktOC43LTguOC0xOHptMjkwLjMgMTIuN2MxMi43IDAgMjMgMTAuNyAyMy4yIDIzLjl2LjZjLS4xIDEzLjItMTAuNSAyMy45LTIzLjIgMjMuOS0xMi44IDAtMjMuMi0xMC44LTIzLjItMjQuMiAwLTEzLjQgMTAuNC0yNC4yIDIzLjItMjQuMnptOTkuOCAwYzEyLjggMCAyMy4yIDEwLjggMjMuMiAyNC4yIDAgMTMuNC0xMC40IDI0LjItMjMuMiAyNC4yLTEyLjcgMC0yMy0xMC43LTIzLjItMjMuOXYtLjZjLjItMTMuMiAxMC41LTIzLjkgMjMuMi0yMy45em05Ni4zIDBjMTIuOCAwIDIzLjIgMTAuOCAyMy4yIDI0LjIgMCAxMy40LTEwLjQgMjQuMi0yMy4yIDI0LjItMTIuNyAwLTIzLTEwLjctMjMuMi0yMy45di0uNmMuMi0xMy4yIDEwLjUtMjMuOSAyMy4yLTIzLjl6bTkyLjIgMGMxMi44IDAgMjMuMiAxMC44IDIzLjIgMjQuMiAwIDEzLjQtMTAuNCAyNC4yLTIzLjIgMjQuMi0xMi44IDAtMjMuMi0xMC44LTIzLjItMjQuMiAwLTEzLjQgMTAuNC0yNC4yIDIzLjItMjQuMnoiIGZpbGw9IiNmZmYiLz48L3N2Zz4=);
+                  background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA3OTAgMTgwIj48cGF0aCBkPSJNODkuMSAxLjhDMzkuOSAxLjggMCA0MS43IDAgOTAuOSAwIDE0MC4xIDM5LjkgMTgwIDg5LjEgMTgwYzQ5LjIgMCA4OS4xLTM5LjkgODkuMS04OS4xIDAtNDkuMi0zOS45LTg5LjEtODkuMS04OS4xem00NTcuOCAxOS43Yy0sMS4yIDAtMi4yIDEtMi4yIDIuMnYxMDMuMmMwIDEuMiAxIDIuMiAyLjIgMi4yaDEzLjRjMS4yIDAgMi4yLTEgMi4yLTIuYXYtNy4xYzYuOSA3LjIgMTYu0IDExLjMgMjYuMyAxMS4zIDIwLjkgMCAzNy45LTE4IDM3LjktNDAuMyAwLTIyLjMtMTctNDAuMi0zNy45LTQwLjItMTAgMC0xOS41IDQuMS0yNi4zIDExLjNWMjMuN2MwLTEuMi0xLTIuMi0yLjItMi4yaC0xMy40ek05OC4zIDM2LjRjMTEuNC4zIDIyLjkgNC44IDMxLjcgMTMuNyAxNy43IDE3LjcgMTguMyA0NS43IDEuNCA2Mi43LTMwLjUgMzAuNS04NC44IDIwLjctODQuOCAyMC43cy05LjgtNTQuMyAyMC43LTg0LjhjOC41LTguNCAxOS43LTEyLjUgMzEtMTIuM3ptMTYwLjMgMTQuMmMtOC4yIDAtMTUuOSA0LTIwLjggMTAuNnYtNi40YzAtMS4yLTEtMi4yLTIuMi0yLjJoLTEzLjRjLTEuMiAwLTIuMiAxLTIuMiAyLjJWMTI3YzAgMS4yIDEgMi4yIDIuMiAyLjJoMTMuNGMxLjIgMCAyLjItMSAyLjItMi4yVjgzLjhjLjUtOS43IDcuMi0xNy4zIDE1LjQtMTcuMyA4LjUgMCAxNS42IDcuMSAxNS42IDE2LjV2NDRjMCAxLjIgMSAyLjIgMi4yIDIuMmgxMy41YzEuMiAwIDIuMi0xIDIuMi0yLjJsLS4xLTQ0LjljMS4yLTguOCA3LjYtMTUuNiAxNS4zLTE1LjYgOC41IDAgMTUuNiA3LjEgMTUuNiAxNi41djQ0YzAgMS4yIDEgMi4yIDIuMiAyLjJoMTMuNWMxLjIgMCAyLjItMSAyLjItMi4ybC0uMS00OS42Yy4zLTE0LjgtMTIuMy0yNi44LTI3LjktMjYuOC0xMCAuMS0xOS4yIDUuOS0yMy41IDE1LTUtOS4zLTE0LjctMTUuMS0yNS4zLTE1em0xMjcuOSAwYy0yMC45IDAtMzcuOSAxOC0zNy45IDQwLjMgMCAyMi4zIDE3IDQwLjMgMzcuOSA0MC4zIDEwIDAgMTkuNS00LjEgMjYuMy0xMS4zdjcuMWMwIDEuMiAxIDIuMiAyLjIgMi4yaDEzLjRjMS4yIDAgMi4yLTEgMi4yLTIuMlY1NC44Yy4xLTEuMi0uOS0yLjItMi4yLTIuMkg0MTVjLTEuMiAwLTIuMiAxLTIuMiAyLjJ2Ny4xYy02LjktNy4yLTE2LjQtMTEuMy0yNi4zLTExLjN6bTEwNi4xIDBjLTEwIDAtMTkuNS00LjEtMjYuMyAxMS4zdi03LjFjMC0xLjItMS0yLjItMi4yLTIuMmgtMTMuNGMtMS4yIDAtMi4yIDEtMi4yIDIuMlYxNThjMCAxLjIgMSAyLjIgMi4yIDIuMmgxMy40YzEuMiAwIDIuMi0xIDIuMi0yLjJ2LTM4LjJjNi45IDcuMiAxNi40IDExLjMgMjYuMyAxMS4zIDIwLjkgMCAzNy45LTE4IDM3LjktNDAuMyAwLTIyLjMtMTctNDAuMi0zNy45LTQwLjJ6bTE4NS41IDBjLTIyLjcgMC00MSAxOC00MSA0MC4zIDAgMjIuMyAxOC40IDQwLjMgNDEgNDAuM3M0MS0xOCA0MS00MC4zYzAtMjIuMy0xOC4zLTQwLjMtNDEtNDAuM3ptNDUuNCAyYy0xLjEgMC0yIC45LTIgMiAwIC40LjEuOC4zIDEuMWwyMyAzNS0yMy4zIDM1LjRjLS42LjktLjQgMi4yLjYgMi44LjMuMi43LjMgMS4xLjNoMTUuNWMxLjIgMCAyLjMtLjYgMi45LTEuNmwxMy44LTIzLjEgMTMuOCAyMy4xYy42IDEgMS43IDEuNiAyLjkgMS42aDE1LjVjMS4xIDAgMi0uOSAyLTIgMC0uNC0uMS0uNy0uMy0xLjFMNzY2IDkwLjdsMjMtMzVjLjYtLjkuNC0yLjItLjYtMi44LS4zLS4yLS43LS4zLTEuMS0uM2gtMTUuNWMtMS4yIDAtMi4zLjYtMi45IDEuNmwtMTMuNSAyMi43LTEzLjUtMjIuN2MtLjYtMS0xLjctMS42LTIuOS0xLjZoLTE1LjV6TTk5LjMgNTRsLTguNyAxOC0xNy45IDguNyAxNy45IDguNyA4LjcgMTggOC44LTE4IDE3LjktOC43LTE3LjktOC43LTguOC0xOHptMjkwLjMgMTIuN2MxMi43IDAgMjMgMTAuNyAyMy4yIDIzLjl2LjZjLS4xIDEzLjItMTAuNSAyMy45LTIzLjIgMjMuOS0xMi44IDAtMjMuMi0xMC44LTIzLjItMjQuMiAwLTEzLjQgMTAuNC0yNC4yIDIzLjItMjQuMnptOTkuOCAwYzEyLjggMCAyMy4yIDEwLjggMjMuMiAyNC4yIDAgMTMuNC0xMC40IDI0LjItMjMuMiAyNC4yLTEyLjcgMC0yMy0xMC43LTIzLjItMjMuOXYtLjZjLjItMTMuMiAxMC41LTIzLjkgMjMuMi0yMy45em05Ni4zIDBjMTIuOCAwIDIzLjIgMTAuOCAyMy4yIDI0LjIgMCAxMy40LTEwLjQgMjQuMi0yMy4yIDI0LjItMTIuNyAwLTIzLTEwLjctMjMuMi0yMy45di0uNmMuMi0xMy4yIDEwLjUtMjMuOSAyMy4yLTIzLjl6bTkyLjIgMGMxMi44IDAgMjMuMiAxMC44IDIzLjIgMjQuMiAwIDEzLjQtMTAuNCAyNC4yLTIzLjIgMjQuMi0xMi44IDAtMjMuMi0xMC44LTIzLjItMjQuMiAwLTEzLjQgMTAuNC0yNC4yIDIzLjItMjQuMnoiIGZpbGw9IiNmZmYiLz48L3N2Zz4=);
                 "></div>
           </div>
           <div class="hidden md:flex pl-3 border-l border-solid border-gray-700 h-full  items-center">
@@ -258,11 +337,13 @@
     </div>
   </div>
   <script>
-    if (self == top) {
-      document.getElementsByTagName("body")[0].style.display = "block";
-    } else {
-      top.location = self.location;
-    }
+    (function () {
+      if (self === top) {
+        document.getElementById("geojsonio-body").classList.remove("hidden-by-guard");
+      } else {
+        top.location = self.location;
+      }
+    })();
   </script>
   <script src="bundle.js"></script>
 
@@ -276,101 +357,160 @@
     });
   </script>
 
-<script>
-(function () {
-  const isMobile = window.matchMedia('(max-width: 900px)').matches;
+  <script>
+    (function () {
+      const isMobile = window.matchMedia('(max-width: 900px)').matches;
 
-  function cleanFileBar() {
-    document.querySelectorAll('.file-bar').forEach(fb => {
-      fb.querySelectorAll('a,button,span,div').forEach(el => {
-        const t = (el.textContent || '').trim().toLowerCase();
-        if (t === 'meta') el.style.display = 'none';
-      });
-      if (isMobile) fb.style.setProperty('display', 'none', 'important');
-    });
-  }
-
-  function buildMobileMenu() {
-    if (!isMobile) return;
-
-    const anchor =
-      document.querySelector('.geojsonio .text-white.bg-mb-gray-dark.font-sans.px-3.flex') ||
-      document.querySelector('.topbar, header') ||
-      document.body;
-
-    const btn = document.createElement('button');
-    btn.className = 'mobile-menu-btn';
-    btn.setAttribute('aria-label', 'Menu');
-    btn.textContent = '☰';
-
-    const menu = document.createElement('div');
-    menu.className = 'mobile-menu';
-    ['Open', 'Save', 'New'].forEach(name => {
-      const b = document.createElement('button');
-      b.dataset.action = name;
-      b.textContent = name;
-      menu.appendChild(b);
-    });
-
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      menu.classList.toggle('open');
-    });
-    document.addEventListener('click', () => menu.classList.remove('open'));
-
-    // ✅ NEW: special-case "Save" to call the original downloadGeoJSON
-    menu.addEventListener('click', e => {
-      const b = e.target.closest('button[data-action]');
-      if (!b) return;
-
-      const action = (b.dataset.action || '').toLowerCase();
-      if (action === 'save') {
-        e.preventDefault();
-        e.stopPropagation();
-
-        // Prefer the original function exposed from fileBar.js
-        const fn = window.context?.actions?.downloadGeoJSON;
-        if (typeof fn === 'function') {
-          fn();
-        } else {
-          // Fallback: click the "GeoJSON" submenu entry in the hidden file-bar
-          const geoBtn = [...document.querySelectorAll('.file-bar .children a')]
-            .find(el => (el.textContent || '').trim().toLowerCase() === 'geojson');
-          if (geoBtn) {
-            geoBtn.click();
-          } else {
-            console.warn('GeoJSON export not found; ensure fileBar is initialized.');
-          }
-        }
-
-        // close menu + light haptic
-        menu.classList.remove('open');
-        if (navigator.vibrate) navigator.vibrate(20);
-        return;
+      function cleanFileBar() {
+        document.querySelectorAll('.file-bar').forEach(fb => {
+          fb.querySelectorAll('a,button,span,div').forEach(el => {
+            const t = (el.textContent || '').trim().toLowerCase();
+            if (t === 'meta') el.style.display = 'none';
+          });
+          if (isMobile) fb.style.setProperty('display', 'none', 'important');
+        });
       }
 
-      // Default: forward Open/New to the real file-bar items by label
-      const targetLabel = action;
-      const real = [...document.querySelectorAll('.file-bar a, .file-bar button')]
-        .find(el => (el.textContent || '').trim().toLowerCase() === targetLabel);
-      if (real) real.click(); else console.warn('file-bar button not found:', targetLabel);
-      menu.classList.remove('open');
-    });
+      function buildMobileMenu() {
+        if (!isMobile) return;
 
-    anchor.appendChild(btn);
-    anchor.appendChild(menu);
-  }
+        const anchor =
+          document.querySelector('.geojsonio .text-white.bg-mb-gray-dark.font-sans.px-3.flex') ||
+          document.querySelector('.topbar, header') ||
+          document.body;
 
-  window.addEventListener('load', function () {
-    cleanFileBar();
-    buildMobileMenu();
+        const btn = document.createElement('button');
+        btn.className = 'mobile-menu-btn';
+        btn.setAttribute('aria-label', 'Menu');
+        btn.textContent = '☰';
 
-    if (isMobile && window.context?.map?.resize) {
-      setTimeout(() => window.context.map.resize(), 200);
-    }
-  });
-})();
-</script>
+        const menu = document.createElement('div');
+        menu.className = 'mobile-menu';
+        ['Open', 'Save', 'New'].forEach(name => {
+          const b = document.createElement('button');
+          b.dataset.action = name;
+          b.textContent = name;
+          menu.appendChild(b);
+        });
+
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          menu.classList.toggle('open');
+        });
+        document.addEventListener('click', () => menu.classList.remove('open'));
+
+        // ✅ NEW: special-case "Save" to call the original downloadGeoJSON
+        menu.addEventListener('click', e => {
+          const b = e.target.closest('button[data-action]');
+          if (!b) return;
+
+          const action = (b.dataset.action || '').toLowerCase();
+          if (action === 'save') {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Prefer the original function exposed from fileBar.js
+            const fn = window.context?.actions?.downloadGeoJSON;
+            if (typeof fn === 'function') {
+              fn();
+            } else {
+              // Fallback: click the "GeoJSON" submenu entry in the hidden file-bar
+              const geoBtn = [...document.querySelectorAll('.file-bar .children a')]
+                .find(el => (el.textContent || '').trim().toLowerCase() === 'geojson');
+              if (geoBtn) {
+                geoBtn.click();
+              } else {
+                console.warn('GeoJSON export not found; ensure fileBar is initialized.');
+              }
+            }
+
+            // close menu + light haptic
+            menu.classList.remove('open');
+            if (navigator.vibrate) navigator.vibrate(20);
+            return;
+          }
+
+          // Default: forward Open/New to the real file-bar items by label
+          const targetLabel = action;
+          const real = [...document.querySelectorAll('.file-bar a, .file-bar button')]
+            .find(el => (el.textContent || '').trim().toLowerCase() === targetLabel);
+          if (real) real.click();
+          else console.warn('file-bar button not found:', targetLabel);
+          menu.classList.remove('open');
+        });
+
+        anchor.appendChild(btn);
+        anchor.appendChild(menu);
+      }
+
+      window.addEventListener('load', function () {
+        cleanFileBar();
+        buildMobileMenu();
+
+        if (isMobile && window.context?.map?.resize) {
+          setTimeout(() => window.context.map.resize(), 200);
+        }
+
+        if (window.location.search.indexOf('debug=1') !== -1 || window.location.hash.indexOf('debug=1') !== -1) {
+          const consoleDiv = document.getElementById('debug-console');
+          consoleDiv.style.display = 'block';
+          const log = (msg, color) => {
+            const div = document.createElement('div');
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            if (color) div.style.color = color;
+            consoleDiv.appendChild(div);
+            // Limit number of children to avoid performance hit
+            if (consoleDiv.childNodes.length > 100) consoleDiv.removeChild(consoleDiv.childNodes[1]);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+          };
+
+          log('Debug mode active');
+          log('User Agent: ' + navigator.userAgent);
+          log('Screen size: ' + window.innerWidth + 'x' + window.innerHeight);
+
+          window.onerror = (msg, url, line) => {
+            log(`GLOBAL ERR: ${msg} (${url}:${line})`, '#ff5555');
+            return false;
+          };
+
+          window.onunhandledrejection = (event) => {
+            log(`PROMISE REJ: ${event.reason}`, '#ff5555');
+          };
+
+          const oldLog = console.log;
+          console.log = (...args) => {
+            oldLog(...args);
+            log(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '));
+          };
+
+          const oldWarn = console.warn;
+          console.warn = (...args) => {
+            oldWarn(...args);
+            log('WARN: ' + args.join(' '), '#ffff55');
+          };
+
+          const oldErr = console.error;
+          console.error = (...args) => {
+            oldErr(...args);
+            log('ERROR: ' + args.join(' '), '#ff5555');
+          };
+
+          // Periodically check if map container has size
+          setInterval(() => {
+            const m = document.getElementById('map');
+            if (m) {
+              const r = m.getBoundingClientRect();
+              if (r.width === 0 || r.height === 0) {
+                log(`MAP SIZE WARNING: ${r.width}x${r.height}`, 'orange');
+              }
+            } else {
+              log('MAP CONTAINER NOT FOUND', 'orange');
+            }
+          }, 3000);
+        }
+      });
+    })();
+  </script>
 
 </body>
 
