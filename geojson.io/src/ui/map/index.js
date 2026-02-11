@@ -13,6 +13,7 @@ const ExtendDrawBar = require('../draw/extend_draw_bar');
 const DrawGreen = require('../draw/green');
 const { EditControl, SaveCancelControl, TrashControl } = require('./controls');
 const { geojsonToLayer, bindPopup } = require('./util');
+const message = require('../message');
 const styles = require('./styles');
 const {
   DEFAULT_STYLE,
@@ -672,23 +673,88 @@ module.exports = function (context, readonly) {
       }
     }
 
+    function getAccuratePosition(options = {}) {
+      const desiredAccuracy = options.desiredAccuracy || 10; // meters
+      const timeout = options.timeout || 20000; // ms
+      const highAccuracyOpts = {
+        enableHighAccuracy: true,
+        maximumAge: 0,
+        timeout: 20000 // Geolocation API timeout
+      };
+
+      return new Promise((resolve, reject) => {
+        let bestPos = null;
+        let watchId = null;
+        let timerId = null;
+
+        // Show initial message
+        const msg = message(d3.select(context.container.node()))
+          .select('.content')
+          .html('Warming up location...');
+
+        const cleanup = () => {
+          if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+          if (timerId !== null) clearTimeout(timerId);
+          // Remove the message
+          d3.select('.message').remove();
+        };
+
+        const onPosition = (pos) => {
+          const acc = pos.coords.accuracy;
+          // Update best position found so far
+          if (!bestPos || acc < bestPos.coords.accuracy) {
+            bestPos = pos;
+          }
+
+          // Update UI
+          msg.html(`Warming up location... <br/>Current accuracy: ${Math.round(acc)}m (Target: ${desiredAccuracy}m)`);
+
+          // Check if good enough
+          if (acc <= desiredAccuracy) {
+            cleanup();
+            resolve(pos);
+          }
+        };
+
+        const onError = (err) => {
+          console.warn('Geolocation watch error:', err);
+          // If we have a position, we might resolve with it on timeout, but strictly here we just keep waiting or fail if fatal
+          // For now, we continue waiting until timeout unless it's a fatal permission error
+          if (err.code === 1) { // PERMISSION_DENIED
+            cleanup();
+            reject(err);
+          }
+        };
+
+        watchId = navigator.geolocation.watchPosition(onPosition, onError, highAccuracyOpts);
+
+        timerId = setTimeout(() => {
+          cleanup();
+          if (bestPos) {
+            // Warn user we are using a less accurate position
+            message(d3.select(context.container.node()))
+              .select('.content')
+              .html(`Coordinate accuracy could not meet target. Using best available (${Math.round(bestPos.coords.accuracy)}m).`);
+
+            // Auto hide warning after 4s
+            setTimeout(() => { d3.select('.message').transition().style('opacity', 0).remove(); }, 4000);
+
+            resolve(bestPos);
+          } else {
+            reject(new Error('Timeout: No position retrieved.'));
+          }
+        }, timeout);
+      });
+    }
+
     async function addHeadAtGPS() {
       if (!('geolocation' in navigator)) {
         console.warn('Geolocation not supported');
         return;
       }
 
-      const getPosition = (opts) => new Promise((resolve, reject) =>
-        navigator.geolocation.getCurrentPosition(resolve, reject, opts)
-      );
-
       try {
-        // Ask for high-accuracy GPS (mobile)
-        const pos = await getPosition({
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
-        });
+        const pos = await getAccuratePosition({ desiredAccuracy: 3, timeout: 30000 });
 
         const lng = pos.coords.longitude;
         const lat = pos.coords.latitude;
@@ -713,24 +779,7 @@ module.exports = function (context, readonly) {
 
       } catch (err) {
         console.warn('Geolocation failed:', err);
-        // Fallback for testing/desktop: Use map center
-        console.log('Falling back to map center (Sprinkler)');
-        const center = context.map.getCenter();
-        const lng = center.lng;
-        const lat = center.lat;
-
-        // Create the sprinkler head feature
-        const feature = {
-          type: 'Feature',
-          geometry: { type: 'Point', coordinates: [lng, lat] },
-          properties: {
-            layer: 'irrigation.sprinkler',
-            source: 'manual_fallback',
-            accuracy_m: 0,
-            createdUtc: new Date().toISOString()
-          }
-        };
-        update(stripIds([feature]));
+        alert('Could not get GPS location: ' + (err.message || err.toString()));
       }
     }
 
@@ -740,13 +789,8 @@ module.exports = function (context, readonly) {
         return;
       }
 
-      const getPosition = (opts) =>
-        new Promise((resolve, reject) =>
-          navigator.geolocation.getCurrentPosition(resolve, reject, opts)
-        );
-
       try {
-        const pos = await getPosition({ enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+        const pos = await getAccuratePosition({ desiredAccuracy: 3, timeout: 30000 });
         const lng = pos.coords.longitude;
         const lat = pos.coords.latitude;
 
@@ -768,26 +812,7 @@ module.exports = function (context, readonly) {
         if (navigator.vibrate) navigator.vibrate(30);
       } catch (err) {
         console.warn('Geolocation failed:', err);
-        // Fallback for testing/desktop: Use map center
-        console.log('Falling back to map center (Pump)');
-        const center = context.map.getCenter();
-        const lng = center.lng;
-        const lat = center.lat;
-
-        const feature = {
-          type: 'Feature',
-          geometry: { type: 'Point', coordinates: [lng, lat] },
-          properties: {
-            layer: 'irrigation.pump',
-            source: 'manual_fallback',
-            accuracy_m: 0,
-            createdUtc: new Date().toISOString(),
-            'marker-color': '#0a8f5b',
-            'point-radius': 8
-          }
-        };
-
-        update(stripIds([feature]));
+        alert('Could not get GPS location: ' + (err.message || err.toString()));
       }
     }
 
